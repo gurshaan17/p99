@@ -1,151 +1,361 @@
 # DESIGN.md
 
 Design system for the daily production-incident site (Next.js + MDX + Tailwind).
-opencode: read this file before any UI work. Follow it exactly. Never hardcode colors, fonts, spacing, or radii; use the tokens below. If a rule is missing, extend this file rather than improvising.
 
-> Note on values: the numbers below were estimated from screenshots of designeer.xyz (used as a style reference only). Before locking them in, open DevTools on the reference site and compare computed values (font-family, colors, padding, radius). Update the tokens here, and the rest of the app follows. Do not copy the reference site's logo, copy, or assets.
+opencode: read this file before any UI work. Follow it exactly. Never invent visual tokens in components. If a rule is missing, extend this file instead of improvising.
 
----
+**Reference basis:** this document uses the supplied Designeer HTML as the structural/style reference. The HTML explicitly exposes a `max-w-[60rem]` frame, an `18rem` desktop sidebar, dashed `border-line` separators, `rounded-chip` and `rounded-control` primitives, `font-display`, `font-pixel`, `font-mono`, `text-body`, `text-small`, and `text-micro` typography roles, 32px toolbar controls, and responsive `lg`/`sm` behavior. These are stronger evidence than the previous screenshot estimates.
 
-## 1. Principles
+Do not copy the reference site's logo, copy, content, brand assets, or proprietary illustrations. Recreate the design language only.
 
-1. **Quiet and editorial.** The UI is a neutral frame. Content (the incident, the code, the diagrams) provides all the interest.
-2. **Dense but airy.** Small type, generous whitespace, tight rows. Lots of information without feeling crowded.
-3. **Structure through lines, not boxes.** Dashed hairlines, hatched gutters, and thin borders do the organizing. Avoid heavy cards and shadows.
-4. **Engineered feel.** Monospace labels, index numbers, keycap hints, and counts make it feel like a tool built by an engineer.
-5. **One accent, used rarely.** A soft blue tint for promotional or highlighted surfaces. Everything else is grayscale.
-6. **Fast and calm.** Subtle 120-150ms transitions. No bounces, parallax, or scroll-jacking.
+Values that are not explicitly recoverable from the supplied HTML (especially exact color hex values, exact `--pad-x`, `--pad-y`, radius values, and font files' family names) remain tokens to be measured in DevTools before being treated as exact. Do not invent replacement values in component code.
 
 ---
 
-## 2. Design tokens
+## 1. Design language
 
-Put these in `app/globals.css` (Tailwind v4 `@theme`) or `tokens.css`. Light is the default; dark is via `prefers-color-scheme` plus a `data-theme` override.
+1. **Quiet, editorial, technical.** The interface is a frame around the content. It should feel like a carefully engineered catalogue/tool rather than a marketing site.
+2. **Dense but breathable.** Rows are compact, typography is small, and whitespace separates major sections.
+3. **Lines do the structural work.** Prefer dashed hairlines and subtle separators over heavy cards, shadows, or nested containers.
+4. **Typography creates hierarchy.** Use display type for section/title moments, pixel type for the product wordmark or special identity moments, mono for metadata/labels/counts, and the normal sans role for body copy.
+5. **Neutral first, accent second.** Most surfaces remain neutral. Accent appears on selected/highlighted elements, promotional treatment, and occasional actions.
+6. **Micro-interactions are tactile, not decorative.** The reference HTML uses short transitions and small active-state scale changes. Use these sparingly and consistently.
+7. **Responsive by composition, not shrinkage.** Desktop has a persistent sidebar; below `lg`, navigation becomes mobile-first and the desktop chrome disappears.
+8. **No visual noise.** Avoid gradients in UI chrome, large shadows, excessive rounded cards, glass effects, bounce animations, or oversized hero sections.
+
+---
+
+## 2. Evidence from the supplied reference HTML
+
+These rules are directly supported by the supplied HTML rather than guessed from screenshots.
+
+### 2.1 Page shell
+
+Reference structure:
+
+```
+frame
+└── desktop grid
+    ├── sidebar: 18rem
+    └── main: minmax(0, 1fr)
+```
+
+Observed classes:
+
+- `.frame mx-auto w-full max-w-[60rem]`
+- desktop layout: `lg:grid lg:grid-cols-[18rem_minmax(0,1fr)]`
+- sidebar: `lg:sticky lg:top-0 lg:h-dvh`
+- sidebar/main separator: `lg:border-r lg:border-dashed lg:border-line`
+- main top bar: `lg:sticky lg:top-0 lg:z-30`
+- main sections use `border-b border-dashed border-line`
+- horizontal padding is consistently driven by `--pad-x`
+- vertical page padding is driven by `--pad-y`
+
+**Implementation rule:** use a 60rem maximum shell and an 18rem desktop sidebar. Do not use the previous approximate 1100px shell or 300px sidebar.
+
+### 2.2 Desktop sidebar
+
+The supplied HTML shows:
+
+- full-height sticky sidebar
+- horizontal padding via `--pad-x`
+- top spacing that reaches `clamp(2rem, 6vh, 3.25rem)` on large screens
+- logo/orb around `size-25` = 100px at the Tailwind default spacing scale
+- desktop wordmark uses `font-pixel`
+- intro copy is `text-body`, relaxed leading, max-width `34ch`
+- navigation starts after a dashed top border
+- navigation label is `font-mono text-micro tracking-wider uppercase`
+- nav rows use `rounded-chip`, `text-body`, `px-2 py-1.5`
+- nav counts use `font-mono text-micro tabular-nums`
+- desktop sidebar footer also uses a dashed top border
+
+**Implementation rule:** keep the sidebar visually light. It is a column of identity, intro, navigation, optional sections, and footer — not a stack of cards.
+
+### 2.3 Main top bar
+
+The supplied HTML shows:
+
+- `border-b border-dashed border-line`
+- `bg-page`
+- `px-(--pad-x) py-2.5`
+- sticky on desktop
+- toolbar controls are `h-8`
+- controls use `rounded-control`
+- shortcut hints are `h-5`, `rounded-chip`
+- shortcut separators are `h-4 w-px`
+- toolbar actions use `text-ink-3`, changing to `text-ink` on hover
+- active controls may use `bg-field`
+- interaction includes a small `active:scale-[0.98]`
+
+**Implementation rule:** the toolbar is compact. Do not turn it into a 76px-tall marketing header. Use the tokenized horizontal padding and 32px controls.
+
+### 2.4 Section rhythm
+
+Observed section structure:
+
+```
+section
+  border-b border-dashed border-line
+  px-(--pad-x)
+  py-(--pad-y)
+  lg:min-h-(--section-min-h)
+```
+
+Section heading pattern: `mono index` → `display heading` → `body/description`.
+
+Observed classes include:
+
+- index: `font-mono text-micro text-ink-3 tabular-nums`
+- heading: `font-display text-lead font-medium tracking-display text-ink`
+- description: `text-body text-ink-3 text-pretty`
+- heading row: `flex flex-wrap items-baseline gap-x-2.5 gap-y-1`
+
+**Implementation rule:** preserve this index → title → description rhythm for archive/topic sections.
+
+### 2.5 List rows
+
+The supplied HTML shows a compact list pattern:
+
+- rows are grouped inside a list
+- row links use `rounded-chip`
+- vertical padding is approximately `0.3rem`
+- content uses `gap-2.5`
+- topic/icon mark is `size-[1.125rem]`
+- rows use opacity choreography on pointer devices: hovered row remains full opacity while sibling rows fade
+- hover/focus uses underline rather than large background changes
+- active interaction uses a small scale-down
+
+**Implementation rule:** archive rows should feel like catalogue entries, not cards. Do not add individual borders around every row.
+
+### 2.6 Promotional panel
+
+Observed structure:
+
+- `rounded-card`
+- `bg-accent-tint/40`
+- compact padding: `px-4 py-3.5`, increasing to `sm:px-5 sm:py-4`
+- top row uses `gap-4`
+- label is `font-mono text-micro tracking-wider uppercase`
+- body uses `text-body leading-relaxed`
+- CTA is an underlined text action, not a filled button
+
+**Implementation rule:** promotional/notice UI should be a soft tinted surface with a restrained radius and typography-led CTA.
+
+### 2.7 Mobile behavior
+
+Observed HTML:
+
+- desktop navigation is hidden with `lg:hidden` / `max-lg:hidden`
+- mobile chrome is a compact sticky bar
+- mobile bottom utility strip uses safe-area inset
+- touch targets become larger using `pointer-coarse`
+- desktop sidebar exists only at `lg`
+- some desktop controls disappear below `lg`
+- mobile navigation rows can use stronger surface contrast
+
+**Implementation rule:** breakpoint behavior should follow this pattern: desktop composition at `lg`, compact/mobile composition below `lg`, and touch targets expanded without changing the visual density on pointer devices.
+
+---
+
+## 3. Tokens
+
+Put these in `app/globals.css` / Tailwind v4 theme tokens.
+
+### 3.1 Naming
+
+The reference HTML establishes these semantic concepts:
+
+| Concept | Token |
+|---|---|
+| page | page background |
+| surface | elevated/secondary neutral surface |
+| field | interactive/input background |
+| line | normal separator |
+| line-strong | stronger separator |
+| ink | primary text |
+| ink-2 | secondary text |
+| ink-3 | muted text |
+| accent | accent text/icon |
+| accent-tint | soft accent surface |
+
+Use the project's existing token names below. Components must never introduce raw colors.
+
+### 3.2 Light theme
 
 ```css
 :root {
   /* Surfaces */
   --bg: #ffffff;
-  --bg-subtle: #fafafa;        /* hover fill for rows */
-  --bg-muted: #f4f4f5;         /* active pill, keycaps, inputs */
-  --bg-tint: #f3f8fc;          /* soft blue promo surface */
+  --bg-subtle: #fafafa;
+  --bg-muted: #f5f5f5;
+  --bg-field: #f5f5f5;
+  --bg-tint: #f7f5ff;
 
   /* Text */
-  --fg: #0a0a0a;               /* titles, active items */
-  --fg-secondary: #404040;     /* body copy */
-  --fg-muted: #737373;         /* descriptions, inactive nav */
-  --fg-faint: #a3a3a3;         /* index numbers, separators, counts */
+  --fg: #111111;
+  --fg-secondary: #3f3f46;
+  --fg-muted: #71717a;
+  --fg-faint: #a1a1aa;
 
   /* Lines */
-  --border: #e5e5e5;           /* dashed dividers, card borders */
-  --border-strong: #d4d4d4;    /* hover / focus-adjacent borders */
-  --hatch: #e9e9e9;            /* gutter stripe color */
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+  --hatch: #ededee;
 
-  /* Accent (single) */
-  --accent: #2b6cb0;           /* links, "Visit site"-style CTAs, SPONSORED-style labels */
-  --accent-tint: #f3f8fc;      /* same as --bg-tint */
-  --accent-border: #dbe8f3;
+  /* Accent */
+  --accent: #7c3aed;
+  --accent-tint: #f5f3ff;
+  --accent-border: #ddd6fe;
 
-  /* Feedback (used only in rubric scoring and streaks) */
+  /* Feedback */
   --success: #15803d;
-  --warning: #b45309;
+  --warning: #a16207;
   --danger: #b91c1c;
 
-  /* Radii */
-  --radius-sm: 6px;            /* keycaps, badges */
-  --radius-md: 10px;           /* nav pills, list rows, inputs */
-  --radius-lg: 16px;           /* cards, promo panel */
+  /* Radius — keep these semantic and centralized */
+  --radius-control: 8px;
+  --radius-chip: 10px;
+  --radius-card: 14px;
   --radius-full: 9999px;
 
-  /* Shadows (nearly invisible) */
-  --shadow-pill: 0 1px 2px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.03);
-  --shadow-card: 0 1px 2px rgba(0,0,0,0.04);
-
   /* Motion */
-  --ease: cubic-bezier(0.2, 0, 0, 1);
-  --dur-fast: 120ms;
-  --dur: 180ms;
-}
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-hover: 120ms;
+  --dur-ui: 180ms;
 
+  /* Layout */
+  --shell-width: 60rem;
+  --sidebar-width: 18rem;
+}
+```
+
+> **Important:** the exact hex values above are implementation defaults for this product, not claims that these are the reference site's computed colors. The supplied HTML exposes semantic color names and only explicitly exposes `#a78bfa` in SVG artwork. Measure the reference site's computed values in DevTools if pixel-level color matching is required.
+
+### 3.3 Dark theme
+
+```css
 :root[data-theme="dark"] {
   --bg: #0b0b0c;
   --bg-subtle: #121214;
   --bg-muted: #1a1a1d;
-  --bg-tint: #0e1620;
+  --bg-field: #1a1a1d;
+  --bg-tint: #15111f;
 
-  --fg: #f5f5f5;
-  --fg-secondary: #d4d4d4;
-  --fg-muted: #8a8a8f;
-  --fg-faint: #5c5c62;
+  --fg: #f4f4f5;
+  --fg-secondary: #d4d4d8;
+  --fg-muted: #a1a1aa;
+  --fg-faint: #71717a;
 
-  --border: #26262a;
-  --border-strong: #3a3a40;
+  --border: #27272a;
+  --border-strong: #3f3f46;
   --hatch: #1c1c20;
 
-  --accent: #6aa9e8;
-  --accent-tint: #0e1620;
-  --accent-border: #1d3350;
+  --accent: #a78bfa;
+  --accent-tint: #1c1528;
+  --accent-border: #4c3a70;
 
   --success: #4ade80;
-  --warning: #fbbf24;
+  --warning: #facc15;
   --danger: #f87171;
-
-  --shadow-pill: 0 1px 2px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
-  --shadow-card: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { /* mirror the dark block above */ }
 }
 ```
 
-Rules:
-- `body { background: var(--bg); color: var(--fg-secondary); }`. Titles use `--fg`.
-- Never use pure-saturated colors, gradients on UI chrome, or additional accent hues.
-- Contrast: body text and muted text must meet WCAG AA against their backgrounds. `--fg-faint` is for decorative or supplementary text only (index numbers, separators), never essential information.
+The dark accent is intentionally aligned with the explicitly visible `#a78bfa` color in the supplied reference SVG, while the rest remains semantic rather than pretending the HTML exposed exact stylesheet values.
+
+### 3.4 Layout tokens
+
+Do not scatter arbitrary padding values throughout components.
+
+```css
+:root {
+  --pad-x: 1rem;
+  --pad-y: 1.25rem;
+  --section-min-h: 0;
+
+  @media (min-width: 640px) {
+    --pad-x: 1.25rem;
+    --pad-y: 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    --pad-x: 1.5rem;
+    --pad-y: 1.75rem;
+  }
+}
+```
+
+These are product defaults, not measured reference values. If DevTools provides the real computed values, update these tokens only.
 
 ---
 
-## 3. Typography
+## 4. Typography
 
-**Fonts** (load with `next/font`, no external CSS requests):
-- **Sans:** Geist Sans (fallback: Inter, system-ui, sans-serif). Used for all body and headings.
-- **Mono:** Geist Mono (fallback: JetBrains Mono, ui-monospace, monospace). Used for labels, index numbers, keycaps, counts, metadata, and all code.
+The supplied HTML proves three distinct font roles: `font-display`, `font-pixel`, and `font-mono`. It also uses semantic size roles: `text-lead`, `text-body`, `text-small`, `text-micro`.
 
-**Scale** (rem at 16px base):
+### 4.1 Font roles
 
-| Role | Size / Line height | Weight | Font | Color |
-|---|---|---|---|---|
-| Site wordmark | 24px / 1.1 | 500 | Sans | `--fg`, with the TLD or suffix in `--fg-muted` |
-| Page title (question title) | 32px / 1.15 | 600 | Sans | `--fg` |
-| Section title | 20px / 1.3 | 600 | Sans | `--fg` |
-| Row title | 15px / 1.4 | 500 | Sans | `--fg` |
-| Body | 15-16px / 1.65 | 400 | Sans | `--fg-secondary` |
-| Description / subtitle | 14px / 1.5 | 400 | Sans | `--fg-muted` |
-| Mono label | 11-12px / 1.2, uppercase, letter-spacing 0.08em | 400-500 | Mono | `--fg-muted` |
-| Index number ("01") | 12px | 400 | Mono | `--fg-faint` |
-| Count (right-aligned in nav) | 12px, tabular-nums | 400 | Mono | `--fg-faint` |
-| Keycap | 11px | 500 | Mono | `--fg-muted` |
-| Code (inline) | 0.9em | 400 | Mono | `--fg` on `--bg-muted`, radius 4px, padding 2px 5px |
+- **Display** — used for section/page titles. Medium weight. Slightly tight/characterful tracking.
+- **Pixel** — used for product wordmark/identity moments. Do not use for paragraphs.
+- **Mono** — used for navigation labels, indices, counts, metadata, keyboard hints, dates, and technical labels.
+- **Body sans** — used for descriptions, paragraphs, controls, and normal UI copy.
 
-Rules:
-- Headings use slightly tight tracking (`-0.01em` to `-0.02em`). Mono labels use wide tracking.
-- Use `font-variant-numeric: tabular-nums` for all counts, streaks, scores, and dates.
-- Sentence case everywhere except mono labels (uppercase).
-- Max prose line length: 68ch.
+Use `next/font/local` for supplied/local font assets where available. Do not make components request fonts from external CSS.
+
+### 4.2 Type scale
+
+| Role | Size |
+|---|---|
+| `text-micro` | 11–12px |
+| `text-small` | 13–14px |
+| `text-body` | 15–16px |
+| `text-lead` | 20–24px |
+| page title | 28–32px |
+
+Do not create one-off font sizes in components. If a size is genuinely missing, add a semantic role here.
+
+### 4.3 Rules
+
+- Mono labels: uppercase + wider tracking.
+- Counts/dates: `font-variant-numeric: tabular-nums`.
+- Headings: medium weight; avoid overly bold typography.
+- Body text: relaxed line-height.
+- Descriptions should use `text-pretty` where supported.
+- Prose max width: `68ch`.
+- Avoid all-caps except mono metadata labels.
+- The wordmark may use pixel typography; normal headings must not.
 
 ---
 
-## 4. Layout
+## 5. Layout
 
-### 4.1 Page shell
-- The page is a **centered fixed-width shell** with the body background visible on both sides.
-- Shell max-width: about 1100px (verify against the reference; the shell should feel narrow and focused on large monitors).
-- On both sides of the shell sit **hatched gutters**: thin diagonal stripes framed by 1px solid `--border` lines. Hidden below the `lg` breakpoint.
+### 5.1 Shell
+
+```css
+.frame {
+  width: 100%;
+  max-width: var(--shell-width); /* 60rem */
+  margin-inline: auto;
+}
+```
+
+Desktop:
+
+```css
+.shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  align-items: start;
+}
+```
+
+The desktop sidebar is exactly `18rem` in the supplied HTML. Do not add a wide marketing-style centered hero. The shell should feel like a compact application/catalogue.
+
+### 5.2 Hatched gutters
+
+Hatched gutters are optional and should only be used if they reinforce the reference composition. They must not visually compete with the content.
 
 ```css
 .gutter {
-  width: 24px;
   border-inline: 1px solid var(--border);
   background-image: repeating-linear-gradient(
     135deg,
@@ -155,231 +365,493 @@ Rules:
 }
 ```
 
-- Inside the shell, two columns: **sidebar** (fixed ~300px) and **main pane** (fluid), separated by a 1px dashed `--border`.
+No hatch should be used inside ordinary cards or every section.
 
-### 4.2 Sidebar (desktop)
-Sticky, full viewport height, padding 40px 32px, vertical stack:
+### 5.3 Sidebar
 
-1. **Avatar / logo mark:** a ~76px circular dithered orb (pixelated blue-violet gradient). For this site, generate a unique dithered orb or a simple mark, not the reference's image.
-2. **Wordmark:** `sitename` in `--fg` plus a lighter suffix (e.g., `.dev`) in `--fg-muted`.
-3. **Tagline:** 2-3 lines, 15px, `--fg`. Example: "One production incident a day. Diagnose the system, not the algorithm."
-4. Dashed divider.
-5. **NAVIGATION** (mono label), then nav items (see 6.1):
-   - Today
-   - Archive (count)
-   - Topics (count)
-   - Streak
-   - About
-6. **SECTIONS** (mono label): topic filters, each with a count. Examples: Databases, Networking, Concurrency, Caching, Observability, Queues.
-7. Spacer, then a dashed divider pinned to the bottom, then a footer row: small icon buttons on the left, text links ("Newsletter", "Info") on the right in 14px `--fg-muted`.
+```
+desktop:
+  sticky
+  top: 0
+  height: 100dvh
+  width: 18rem
+  dashed right border
+```
 
-### 4.3 Top bar (main pane)
-Height ~76px, bottom dashed border, items vertically centered, padding-inline 40px.
-- **Left:** `Subscribe` pill (replaces the reference's "Log in" because there are no accounts at launch) with a small user/mail icon, followed by a `+` icon button (e.g., "Suggest a topic").
-- **Right:** search icon plus keycap `⌘ K`; a thin vertical divider; a second action plus keycap (e.g., `⌘ E` for "random question"); a divider; **view toggle** (list icon vs. 2x2 grid icon); theme toggle (sun/moon).
-- Keyboard shortcuts are real, not decorative: `⌘/Ctrl+K` opens search, `⌘/Ctrl+E` opens a random archived question, `T` toggles theme.
+Internal order:
 
-### 4.4 Main content
-- Padding: 40px horizontal, 40px vertical between blocks.
-- Blocks are separated by 1px dashed `--border` lines that span the full width of the main pane (edge to edge, not inset).
-- Promo/notice block sits at the top (see 6.6), then sections.
+1. identity/orb
+2. wordmark
+3. short intro
+4. dashed divider
+5. `NAVIGATION` label
+6. nav items
+7. optional `SECTIONS`/topic filters
+8. flexible spacer
+9. dashed footer divider
+10. footer controls/links
 
-### 4.5 Responsive behavior
-- **< 1024px:** hide gutters; sidebar collapses into a top bar with a menu button opening a sheet. Sections become horizontally scrollable pill filters.
-- **< 640px:** padding 20px; grid becomes single column; keycap hints hidden (touch devices don't need them); top bar shows Subscribe, search, theme.
-- Use `env(safe-area-inset-*)` for fixed bars on mobile.
+The reference's orb is approximately `size-25` (100px under default Tailwind spacing). For this product, use a custom abstract mark rather than copying the reference orb.
 
----
+### 5.4 Main top bar
 
-## 5. Borders, lines, and surfaces
+```
+sticky on desktop
+border-bottom: 1px dashed
+background: page
+padding-inline: --pad-x
+padding-block: 0.625rem
+controls: 32px high
+```
 
-- **Dashed dividers:** `1px dashed var(--border)`. Use for section separation, sidebar blocks, and the sidebar/main split. This is the signature detail; use it consistently.
-- **Solid hairlines:** `1px solid var(--border)` for cards, inputs, and gutter edges.
-- **Cards:** `--bg`, 1px solid `--border`, `--radius-lg`, padding 8px around an inner thumbnail area with its own `--radius-md` (the reference's grid cards have a visible inset frame around the preview).
-- **Shadows:** only `--shadow-pill` (active nav item) and `--shadow-card` (on hover for cards). Nothing heavier.
-- **Focus ring:** `outline: 2px solid var(--accent); outline-offset: 2px`, with `--radius-md`. The reference shows a soft light-blue ring on focused buttons; use a 3px ring of `color-mix(in srgb, var(--accent) 25%, transparent)` as an alternative.
+Toolbar groups are separated by thin vertical rules. Shortcut hints are 20px high chips.
 
----
+### 5.5 Sections
 
-## 6. Components
+Every major content section should use:
 
-### 6.1 Nav item
-- Height 40px, padding 0 12px, radius `--radius-md`, gap 12px.
-- Structure: 16px line icon (1.5px stroke, `--fg-muted`) + label (15px) + right-aligned count (mono 12px, `--fg-faint`).
-- **Inactive:** label `--fg-muted`, transparent background.
-- **Hover:** background `--bg-subtle`, label `--fg`.
-- **Active:** background `--bg-muted` (or `--bg` with `--shadow-pill`), label `--fg` at weight 500, icon `--fg`.
-- Section filters (topics) use the same pattern without icons, with a slightly larger left padding.
+```css
+border-bottom: 1px dashed var(--border);
+padding-inline: var(--pad-x);
+padding-block: var(--pad-y);
+```
 
-### 6.2 Mono section label
-`NAVIGATION`, `SECTIONS`, `SYMPTOM`, `CONSTRAINTS`: mono 11-12px, uppercase, tracking 0.08em, `--fg-muted`, margin-bottom 12px.
-
-### 6.3 Section header
-Inline row: index number (`01`, mono, `--fg-faint`) + title (20px, 600, `--fg`) + description (14px, `--fg-muted`) on the same baseline, wrapping on small screens. Used to head each group in the archive (e.g., "01 Databases  Queries, indexes, and locks that go wrong.").
-
-### 6.4 List row (archive, list view)
-- Height 36-40px, padding 0 8px, radius `--radius-md`.
-- Structure: 20px rounded-square icon or topic glyph, then bold title (15px, 500, `--fg`), then a dot separator (`·`, `--fg-faint`, 8px margin), then description (14px, `--fg-muted`, single-line ellipsis).
-- Right side (optional): mono date and difficulty tag.
-- Hover: `--bg-subtle`. Entire row is a link.
-- Rows are packed tightly (no borders between them); spacing alone separates them.
-
-### 6.5 Grid card (archive, grid view)
-- Two columns in the main pane on desktop, one on mobile, 16px gap.
-- Card: see section 5. Inside: an inset preview panel (aspect 16/10, `--bg-muted` background, `--radius-md`) showing a generated abstract diagram or the incident's title in a mono treatment; below it, title, and a mono footer (`Catalogue Entry` style): left topic, right date.
-- Hover: border `--border-strong`, `--shadow-card`, no movement.
-
-### 6.3b Toggle (view / theme)
-Icon-only 32px buttons, radius `--radius-md`, icon `--fg-muted`, hover `--bg-muted` and `--fg`. The view toggle shows the icon of the mode you would switch to.
-
-### 6.6 Promo / notice panel (the "sponsored" pattern)
-Used for the morning-email signup and any announcement.
-- Background `--bg-tint`, 1px solid `--accent-border`, `--radius-lg`, padding 28px 32px.
-- Top row: small megaphone or mail icon in `--accent` + bold title (16px, `--fg`); right-aligned mono label in `--accent` (e.g., `NEWSLETTER`).
-- Body: 16px `--fg-secondary`, max 2 lines.
-- CTA: text link in `--accent`, weight 500, with a trailing `↗` or `→`.
-- Only one such panel per page.
-
-### 6.7 Keycap
-Inline-flex, height 24px, min-width 24px, padding 0 6px, radius `--radius-sm`, background `--bg-muted`, mono 11px 500, `--fg-muted`. Symbols (`⌘`, `K`) are separate keycaps with 4px gap.
-
-### 6.8 Buttons
-- **Pill button (secondary, e.g., Subscribe):** height 32px, padding 0 12px, radius `--radius-md`, background `--bg-muted`, text 14px `--fg`; leading 16px icon.
-- **Primary:** background `--fg`, text `--bg`, radius `--radius-md`, height 40px, padding 0 16px, weight 500. Use sparingly (Reveal solution, Submit).
-- **Ghost:** transparent, `--fg-muted`, hover `--bg-muted`.
-- No colored (blue/green) filled buttons.
-
-### 6.9 Inputs and textareas
-Background `--bg`, 1px solid `--border`, `--radius-md`, padding 12px 14px, 15px text. Focus: border `--fg-muted` plus the focus ring. The answer textarea uses mono placeholder text and autosizes.
-
-### 6.10 Search (command palette)
-`⌘K` opens a centered dialog: max-width 560px, `--radius-lg`, 1px solid `--border`, `--bg`, backdrop `rgba(0,0,0,0.4)` with slight blur. Input on top, results as list rows (6.4) below, grouped by mono labels, arrow-key navigation, `Esc` closes.
-
-### 6.11 Tags and badges
-Mono 11px uppercase, padding 2px 8px, radius `--radius-full`, 1px solid `--border`, `--fg-muted`. Difficulty variants may tint text only (never fill): easy `--success`, medium `--warning`, hard `--danger`.
+Do not inset the separator inside the content.
 
 ---
 
-## 7. Product-specific patterns
+## 6. Borders, surfaces, radii, and shadows
 
-These extend the reference language to this site's features.
+### 6.1 Borders
 
-### 7.1 Today (home)
-- Promo panel (morning email), then a section header `01 Today's incident`, then a single large incident card (not a grid): title, one-line symptom, topic and difficulty badges, primary button `Start diagnosing`.
-- Below: `02 Recent` list rows (last 7 days), then a `View archive` ghost link.
+- Signature divider: `1px dashed var(--border)`.
+- Stronger separator: `1px solid var(--border-strong)`.
+- Inputs: `1px solid var(--border)`.
+- Avoid thick solid section borders.
 
-### 7.2 Incident page
-Single column, max-width 720px, centered within the main pane, generous vertical rhythm (32px between blocks). Blocks in order, each headed by a mono label:
-1. `SYMPTOM`: what is broken, in plain prose, plus optional metrics snippet.
-2. `CONSTRAINTS`: a bulleted list; each bullet has a mono key (`p99`, `RPS`, `Region`) in `--fg` and a value in `--fg-muted`.
-3. `EVIDENCE`: code, logs, or graph blocks (see 8).
-4. `YOUR TASK`: the "figure out why" prompt, in `--fg` at 17px.
-5. **Predict step:** a segmented choice or short textarea for the cause guess, then a second textarea for the interview-style explanation. Primary button `Reveal solution` (disabled until the reader has typed something, with helper text in mono).
-6. **Solution (after reveal):** fades in below (opacity and 8px translate, 180ms). Sections: `DIAGNOSIS`, `FIX`, `WHAT TO REMEMBER` (3 items).
-7. **Rubric self-score:** three rows (Process, Correctness, Depth), each with a 0-3 segmented control (four small keycap-style buttons). Total shown in a mono `--fg` badge (`7 / 9`). No confetti or celebratory animation.
+### 6.2 Radius vocabulary
 
-### 7.3 Streak
-Small mono indicator in the sidebar footer or top bar: flame-free, e.g., `STREAK 12`. A contribution-style 7x N dot grid on the Streak page using `--bg-muted` (empty), `--fg-faint` (missed), `--fg` (done). Tabular numerals.
+Use only these semantic levels:
 
-### 7.4 Archive
-- Sticky filter row under the top bar: topic pills, difficulty, and sort. Uses the same pill styling as nav items.
-- List view is the default; grid view via the toggle. Remember the choice in `localStorage` (no accounts).
-- Groups use section headers (6.3) by topic, with counts.
+- `rounded-control` → buttons, toolbar controls, inputs
+- `rounded-chip` → nav rows, tags, compact metadata
+- `rounded-card` → larger promotional/content surfaces
+- `rounded-full` → avatars and circular controls
 
-### 7.5 Email signup
-Inline in the promo panel: one email input plus a `Subscribe` primary button, side by side on desktop, stacked on mobile. Success state replaces the form with one line in `--fg-secondary`. No modals or popups.
+Do not introduce `rounded-xl`, `rounded-2xl`, etc. directly in product components.
 
----
+### 6.3 Shadows
 
-## 8. Content and MDX styling
+The reference language is intentionally flat.
 
-MDX prose lives in a `.prose-site` wrapper (do not use `@tailwindcss/typography` defaults unmodified).
+**Allowed:**
 
-- Paragraphs: 16px / 1.7, `--fg-secondary`, margin-bottom 1.25em.
-- `h2`: 20px 600 `--fg`, margin-top 2em, with a leading mono index if it is a numbered section. `h3`: 16px 600.
-- Links: `--accent`, underline on hover, `text-underline-offset: 3px`.
-- Lists: 1.25em indent, marker color `--fg-faint`.
-- Blockquote (used for interviewer prompts): 2px left border `--border-strong`, padding-left 16px, `--fg-muted`, italic off.
-- **Code blocks:** background `--bg-subtle`, 1px solid `--border`, `--radius-md`, padding 16px, mono 13px / 1.6, horizontal scroll inside the block, filename or language as a mono label in the top-right in `--fg-faint`. Syntax theme: muted and low-saturation (e.g., Shiki with a GitHub light/dark style), never neon.
-- **Callouts** (`<Note>`): tinted like the promo panel (6.6) but with a smaller radius (`--radius-md`) and no right-aligned label.
-- **Tables:** no zebra striping; 1px dashed row borders, mono header row in uppercase 11px, tabular numerals.
-- **Diagrams and graphs:** grayscale lines on `--bg-subtle` inside a bordered frame; use `--accent` for the single highlighted element (e.g., the bottleneck).
-- Images: `--radius-md`, 1px solid `--border`, caption in mono 12px `--fg-muted`.
+- small inset/edge treatment for keyboard chips
+- very subtle overlay shadow where required for a floating control
+
+**Avoid:**
+
+- large card shadows
+- glows
+- colored shadows
+- neumorphism
+- glassmorphism
 
 ---
 
-## 9. Motion
+## 7. Components
 
-- Transitions on color, background, border, and opacity only: 120-180ms `--ease`.
-- Page and reveal transitions: opacity 0 to 1 and translateY(8px) to 0, 180ms.
-- Hover states never move layout. No scale transforms on cards.
-- Respect `prefers-reduced-motion`: disable all transforms and keep opacity fades at 0ms.
+### 7.1 Navigation item
+
+Reference pattern:
+
+```css
+display: flex;
+align-items: center;
+gap: 0.5rem;
+border-radius: var(--radius-chip);
+padding: 0.375rem 0.5rem;
+font-size: var(--text-body);
+```
+
+States:
+
+- **inactive:** `text: ink-2`
+- **hover:** `text: ink`, optional field background
+- **active:** `text: ink`, medium weight, use a subtle background/hover plate rather than a heavy filled card
+
+Counts: `font-mono`, `text-micro`, `tabular-nums`, muted, `margin-left: auto`.
+
+The reference uses a hover plate that can move between navigation rows. If implemented, animate the plate rather than independently animating every row background.
+
+### 7.2 Section header
+
+Structure: `[index] [display title] [description]`
+
+Desktop can keep all three on one baseline. Mobile may wrap.
+
+- index: mono / micro / muted / tabular
+- title: display / lead / medium
+- description: body / muted / pretty
+
+### 7.3 Archive list row
+
+Use a catalogue-row composition:
+
+```
+[topic mark] [title] [description] ................ [date/tag]
+```
+
+Rules:
+
+- compact vertical padding
+- no permanent card border
+- no background box per row
+- row hover may reveal underline
+- pointer devices may fade sibling rows while preserving the hovered row
+- focus always restores full opacity
+- active press may use a subtle scale-down
+
+### 7.4 Grid card
+
+Grid is an alternate view, not the default visual language.
+
+```
+card
+  rounded-card
+  thin border
+  inset preview
+  title
+  mono metadata footer
+```
+
+Hover: border becomes slightly stronger, optional subtle shadow. No translation, no scale-up.
+
+### 7.5 Toolbar/control button
+
+Reference controls are `h-8` (32px).
+
+```css
+height: 32px;
+border-radius: var(--radius-control);
+color: muted;
+padding-inline: 6px;
+gap: 6px;
+```
+
+- Hover: background `field`, color `ink`
+- Active: `scale: 0.98`
+- Focus: visible 2px outline/ring
+
+### 7.6 Keyboard shortcut chip
+
+Reference pattern: `height: 20px`, `min-width: 20px`, `rounded-chip`, small horizontal padding, small sans text, subtle neutral background.
+
+Keyboard hints are decorative UI affordances only. The actual shortcuts must work.
+
+### 7.7 Primary button
+
+For product actions such as `Reveal solution`: height 40px, padding-inline 16px, `rounded-control`, medium weight, dark/ink background, page-colored text.
+
+Use sparingly. Do not introduce bright filled accent buttons unless a new product requirement explicitly calls for them.
+
+### 7.8 Ghost/text action
+
+Use text + underline behavior where possible. The reference uses `decoration-transparent` by default and `decoration-current` on hover. This is preferable to surrounding every action with a border.
+
+### 7.9 Promo / notice
+
+Use the reference pattern: `rounded-card`, accent-tint with restrained opacity, `px-4 py-3.5`, `sm:px-5 sm:py-4`.
+
+Top row: `icon + title ......... MONO LABEL`
+
+Body: body size, relaxed line-height, max-width around `52ch`.
+
+CTA: text action, accent, underline appears on hover.
+
+Do not turn this into a large marketing banner.
+
+### 7.10 Inputs
+
+Background `bg`, `border: 1px solid border`, `rounded-control`, padding 10–14px, body typography.
+
+Focus uses the global focus ring. Avoid colored glowing inputs.
+
+### 7.11 Search command palette
+
+Centered dialog, restrained card radius, thin border, page background, subtle backdrop. Results use the same archive-row language; grouped labels use mono/micro typography. Keyboard navigation must be real. `Esc` closes.
 
 ---
 
-## 10. Icons and imagery
+## 8. Product-specific patterns
 
-- Icon set: Lucide (or Phosphor Light), 16px in nav and buttons, 1.5px stroke, `currentColor`.
-- Topic glyphs and row icons: 20px rounded-square (radius 6px) tiles with a flat single-color or monochrome mark. Generate simple SVGs per topic; do not use third-party brand logos.
-- Avatar/orb: a small dithered-gradient SVG or canvas (blue to violet), generated once and stored as a static asset.
-- OG images: generated per question with `next/og`, white or near-black background, mono label, title in Sans 600, hatched border, same tokens.
+### 8.1 Today / home
 
----
+Composition:
 
-## 11. Accessibility
+1. compact promo/notice panel
+2. `01 Today's incident`
+3. one featured incident surface
+4. `02 Recent`
+5. compact archive rows
+6. `View archive` text/ghost action
 
-- Semantic landmarks: `<nav>`, `<main>`, `<aside>`, `<header>`.
-- All interactive elements keyboard reachable with a visible focus ring (section 5).
-- Keycap hints are decorative (`aria-hidden`); the real shortcuts are documented in an "Info" dialog and via `aria-keyshortcuts`.
-- Nav counts have `aria-label` ("Archive, 122 questions").
-- Segmented controls and rubric use `role="radiogroup"` / `radio`.
-- Minimum tap target 40px on touch devices, even where the visual size is 32px (use padding).
-- Do not rely on color alone for difficulty or rubric state; always include text.
+The home page should not become a generic SaaS dashboard.
 
----
+### 8.2 Incident page
 
-## 12. Implementation guide (Next.js)
+Single-column reading area, approximately 720px maximum width. Sections, each separated by the same dashed structural language:
 
-- **Stack:** Next.js App Router, Tailwind CSS v4, `next/font` (Geist), `next-themes` for theme (attribute `data-theme`, default system), MDX via `@next/mdx` or Contentlayer/Velite, `cmdk` for the command palette, Shiki for code.
-- **Tailwind mapping:** expose tokens as theme colors (`bg-bg`, `text-fg-muted`, `border-border`) so no raw hex appears in components.
-- **Structure:**
-  ```
-  app/
-    layout.tsx            # shell: gutters, sidebar, top bar
-    page.tsx              # Today
-    archive/page.tsx
-    q/[slug]/page.tsx     # incident page
-  components/
-    shell/  sidebar.tsx topbar.tsx gutters.tsx
-    ui/     nav-item.tsx keycap.tsx pill-button.tsx badge.tsx promo-panel.tsx
-    list/   list-row.tsx grid-card.tsx section-header.tsx
-    incident/ predict-form.tsx rubric.tsx reveal.tsx
-  content/questions/*.mdx
-  ```
-- Build order: tokens, fonts, shell (gutters + sidebar + top bar), nav item, section header, list row, promo panel, archive views, incident page, command palette, then polish.
-- After each component, compare against reference screenshots side by side at the same width and fix spacing before moving on.
+1. `SYMPTOM`
+2. `CONSTRAINTS`
+3. `EVIDENCE`
+4. `YOUR TASK`
+5. prediction form
+6. solution reveal
+7. self-score
 
----
+### 8.3 Streak
 
-## 13. Don'ts
+Use a compact contribution-style grid. It should feel informational rather than gamified. No confetti, fireworks, badges, or celebratory motion.
 
-- No gradients on UI chrome (the dithered orb is the only exception).
-- No heavy shadows, glows, or glassmorphism (except the light backdrop blur on the command palette).
-- No solid heavy borders between sections; use dashed hairlines.
-- No filled colored buttons, and no accent colors beyond the single blue.
-- No emoji in UI chrome. No confetti or celebration animations.
-- No large border radii (over 16px) except pills.
-- No centered hero sections or marketing-style landing layouts; this is a tool, not a brochure.
-- No third-party brand assets copied from the reference site.
-- No new hex values, font sizes, or spacings outside this file.
+### 8.4 Archive
+
+Default: list view, compact filter row, grouped section headers, topic/difficulty/sort controls.
+
+Optional: grid view; persist view choice in `localStorage`.
+
+### 8.5 Email signup
+
+Inline in the promo panel: desktop input + button, mobile stacked. After success, replace the form with a quiet confirmation line. No modal signup.
 
 ---
 
-## 14. Definition of done for any UI change
+## 9. Content / MDX
 
-1. Uses only tokens from section 2 and type roles from section 3.
-2. Looks right in light and dark themes.
-3. Works at 375px, 768px, and 1440px widths.
-4. Keyboard navigable with a visible focus state.
-5. Matches the reference feel: dashed lines, mono labels, quiet neutral surfaces, tight rows.
-6. Any new pattern is documented in this file in the same change.
+Use a `.prose-site` wrapper. Do not apply generic typography defaults without overriding them with these tokens.
+
+- **paragraph:** body / relaxed leading / secondary text
+- **h2:** lead / medium / primary
+- **h3:** body / medium / primary
+- **links:** accent, underline on hover
+- **lists:** normal indent, muted markers
+- **blockquote:** 2px left border, secondary/muted text, no italic requirement
+- **code:** mono, subtle neutral surface, thin border, `rounded-control`, horizontal scrolling
+
+Code blocks should be quiet and readable. Never use neon syntax colors.
+
+**Tables:** no zebra stripes, dashed row separators, mono header, tabular numerals.
+
+**Diagrams:** mostly grayscale, one accent for the important/highlighted element.
+
+---
+
+## 10. Motion
+
+The supplied HTML establishes two motion tokens: `--dur-hover` and `--dur-ui`.
+
+Use approximately:
+
+- hover/control feedback: 100–140ms
+- UI/reveal transitions: 160–200ms
+
+Allowed properties: `color`, `background-color`, `border-color`, `opacity`, `text-decoration`, small active scale.
+
+For content reveals: `opacity: 0 → 1`, `translateY: 8px → 0`.
+
+Rules:
+
+- no bounce
+- no parallax
+- no scroll-jacking
+- no layout-shifting hover
+- no card scale-up
+- respect `prefers-reduced-motion`
+
+---
+
+## 11. Icons and imagery
+
+Use Lucide or Phosphor Light.
+
+Defaults: nav/button icon 16px, stroke 1.5px, color `currentColor`.
+
+Topic icons: ~18px, `rounded-chip` container, monochrome/simple mark.
+
+Do not copy reference brand logos. For the incident site, prefer abstract diagrams, system topology, query/trace motifs, and small technical illustrations over decorative photography.
+
+---
+
+## 12. Responsive behavior
+
+### ≥ 1024px
+
+- `18rem` sticky sidebar
+- main pane fills remaining shell
+- desktop top bar
+- desktop shortcut hints
+- full navigation
+- optional hatched outer treatment
+
+### 640–1023px
+
+- hide desktop sidebar
+- use mobile/compact navigation
+- retain dashed section separators
+- reduce horizontal padding through `--pad-x`
+- grid may remain 2-column only where content comfortably fits
+
+### < 640px
+
+- single-column content
+- ~20px visual side padding through the layout token
+- hide keyboard shortcut hints
+- top bar contains only essential actions
+- stack forms
+- preserve minimum 40px touch targets even if the visual control is 32px
+
+Use `padding-bottom: env(safe-area-inset-bottom)` for fixed mobile controls where needed.
+
+---
+
+## 13. Accessibility
+
+- Use semantic `<header>`, `<nav>`, `<aside>`, and `<main>`.
+- Every interactive element is keyboard reachable.
+- Focus state must be visible.
+- Do not rely on color alone for difficulty/state.
+- Counts need accessible labels.
+- Segmented controls use `radiogroup`/`radio`.
+- Decorative shortcut chips use `aria-hidden`.
+- Keyboard shortcuts must be functional, not decorative.
+- Minimum touch target: 40px.
+- Maintain WCAG AA contrast for essential text.
+
+---
+
+## 14. Tailwind mapping
+
+Expose semantic tokens rather than raw values:
+
+```
+bg-page        bg-surface     bg-field       bg-accent-tint
+text-ink       text-ink-2     text-ink-3     text-accent-ink
+border-line    border-line-strong
+rounded-control    rounded-chip    rounded-card
+font-display   font-pixel     font-mono
+text-micro     text-small     text-body      text-lead
+```
+
+Do not write `bg-[#...]`, `text-[#...]`, `rounded-[...]`, `text-[17px]`, or `px-[13px]` unless the value is first promoted into this design system.
+
+---
+
+## 15. Suggested component structure
+
+```
+app/
+  globals.css
+  layout.tsx
+  page.tsx
+  archive/
+    page.tsx
+  q/
+    [slug]/
+      page.tsx
+
+components/
+  shell/
+    frame.tsx
+    sidebar.tsx
+    topbar.tsx
+    mobile-nav.tsx
+  ui/
+    nav-item.tsx
+    keycap.tsx
+    control.tsx
+    button.tsx
+    badge.tsx
+    promo-panel.tsx
+  archive/
+    section-header.tsx
+    list-row.tsx
+    grid-card.tsx
+    filters.tsx
+  incident/
+    predict-form.tsx
+    evidence.tsx
+    reveal.tsx
+    rubric.tsx
+
+content/
+  questions/
+    *.mdx
+```
+
+**Build order:** tokens/fonts → shell → sidebar → top bar → navigation → section header → list row → promo panel → archive filters → grid view → incident page → command palette → responsive polish → accessibility pass.
+
+After each stage, compare at 375px, 768px, 1024px, and 1440px.
+
+---
+
+## 16. Reference-specific corrections to the previous DESIGN.md
+
+The following previous assumptions should not be carried forward:
+
+| Previous assumption | Updated rule |
+|---|---|
+| ~1100px shell | 60rem shell from `max-w-[60rem]` |
+| ~300px sidebar | 18rem sidebar from `lg:grid-cols-[18rem_minmax(0,1fr)]` |
+| 76px top bar | Compact `py-2.5` toolbar with 32px controls |
+| Sans + mono only | Display + pixel + mono + body sans roles |
+| Generic 10/16px radius vocabulary | control / chip / card / full semantic vocabulary |
+| Large card-heavy UI | Compact catalogue rows + dashed sections |
+| 120–180ms only | Separate hover/UI motion roles |
+| Approximate nav rows | `rounded-chip`, `px-2 py-1.5`, `text-body` |
+| Generic keycaps at 24px | Reference shortcut chips are about 20px high |
+| Blue accent assumed from screenshots | Accent must remain tokenized; exact reference color requires DevTools |
+| Fixed desktop spacing | Use `--pad-x` / `--pad-y` tokens |
+| Generic section cards | Full-width dashed section boundaries |
+| Heavy card shadow language | Flat surfaces with only subtle utility shadows |
+
+---
+
+## 17. Don'ts
+
+- No copied Designeer logo, wordmark, copy, or brand asset.
+- No raw hex colors in components.
+- No arbitrary spacing values in components.
+- No arbitrary font sizes in components.
+- No gradients in ordinary UI chrome.
+- No glassmorphism.
+- No large shadows or glows.
+- No heavy solid section borders.
+- No excessive rounded cards.
+- No filled accent buttons by default.
+- No emoji in application chrome.
+- No giant centered marketing hero.
+- No bounce/parallax/scroll-jacking.
+- No hover effects that move layout.
+- No card scale-up on hover.
+- No decorative keyboard shortcuts without actual shortcuts.
+- No one-off token names that duplicate an existing semantic role.
+
+---
+
+## 18. Definition of done
+
+Every UI change must:
+
+- Use only documented semantic tokens.
+- Follow the 60rem shell / 18rem sidebar structure where desktop applies.
+- Use dashed structural separators consistently.
+- Use the correct typography role rather than arbitrary font sizing.
+- Work in light and dark themes.
+- Work at 375px, 768px, 1024px, and 1440px.
+- Preserve keyboard navigation and visible focus.
+- Preserve 40px minimum touch targets.
+- Avoid layout movement on hover.
+- Match the reference language without copying its branding/assets.
+- Add any genuinely new visual pattern to this document before shipping.
+
+If exact reference matching is required, verify unresolved tokens in DevTools instead of guessing.
