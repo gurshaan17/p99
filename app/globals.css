@@ -1,26 +1,173 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   Tokens — DESIGN.md section 3
+   Raw values live here. Components reference them only through the semantic
+   Tailwind names mapped in the @theme block below (DESIGN.md section 14).
+   --------------------------------------------------------------------------- */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Surfaces */
+  --bg: #ffffff;
+  --bg-subtle: #fafafa;
+  --bg-muted: #f5f5f5;
+  --bg-field: #f5f5f5;
+  --bg-tint: #f7f5ff;
+
+  /* Text */
+  --fg: #111111;
+  --fg-secondary: #3f3f46;
+  --fg-muted: #71717a;
+  --fg-faint: #a1a1aa;
+
+  /* Lines */
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+  --hatch: #ededee;
+
+  /* Accent */
+  --accent: #7c3aed;
+  --accent-tint: #f5f3ff;
+  --accent-border: #ddd6fe;
+
+  /* Feedback */
+  --success: #15803d;
+  --warning: #a16207;
+  --danger: #b91c1c;
+
+  /* Radius */
+  --radius-control: 8px;
+  --radius-chip: 10px;
+  --radius-card: 14px;
+  --radius-full: 9999px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-hover: 120ms;
+  --dur-ui: 180ms;
+
+  /* Layout */
+  --shell-width: 60rem;
+  --sidebar-width: 18rem;
+
+  /* Layout — responsive (DESIGN.md section 3.4) */
+  --pad-x: 1rem;
+  --pad-y: 1.25rem;
+  --section-min-h: 0;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@media (min-width: 640px) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --pad-x: 1.25rem;
+    --pad-y: 1.5rem;
   }
 }
 
+@media (min-width: 1024px) {
+  :root {
+    --pad-x: 1.5rem;
+    --pad-y: 1.75rem;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b0b0c;
+  --bg-subtle: #121214;
+  --bg-muted: #1a1a1d;
+  --bg-field: #1a1a1d;
+  --bg-tint: #15111f;
+
+  --fg: #f4f4f5;
+  --fg-secondary: #d4d4d8;
+  --fg-muted: #a1a1aa;
+  --fg-faint: #71717a;
+
+  --border: #27272a;
+  --border-strong: #3f3f46;
+  --hatch: #1c1c20;
+
+  --accent: #a78bfa;
+  --accent-tint: #1c1528;
+  --accent-border: #4c3a70;
+
+  --success: #4ade80;
+  --warning: #facc15;
+  --danger: #f87171;
+}
+
+/* ---------------------------------------------------------------------------
+   Tailwind semantic mapping — DESIGN.md section 14
+   `inline` keeps var() references live so dark mode overrides cascade.
+   --------------------------------------------------------------------------- */
+
+@theme inline {
+  /* Surfaces */
+  --color-page: var(--bg);
+  --color-surface: var(--bg-subtle);
+  --color-field: var(--bg-field);
+  --color-accent-tint: var(--accent-tint);
+
+  /* Text */
+  --color-ink: var(--fg);
+  --color-ink-2: var(--fg-secondary);
+  --color-ink-3: var(--fg-muted);
+  --color-accent-ink: var(--accent);
+
+  /* Lines */
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+
+  /* Feedback */
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+
+  /* Radii — semantic levels only, no rounded-xl/2xl in components */
+  --radius-control: var(--radius-control);
+  --radius-chip: var(--radius-chip);
+  --radius-card: var(--radius-card);
+
+  /* Font roles */
+  --font-sans: var(--font-body-sans);
+  --font-display: var(--font-display-face);
+  --font-pixel: var(--font-pixel-face);
+  --font-mono: var(--font-mono-face);
+
+  /* Type scale — DESIGN.md section 4.2 (low end of each range: compact feel) */
+  --text-micro: 11px;
+  --text-micro--line-height: 1.2;
+  --text-micro--letter-spacing: 0.08em;
+
+  --text-small: 13px;
+  --text-small--line-height: 1.5;
+
+  --text-body: 15px;
+  --text-body--line-height: 1.65;
+
+  --text-lead: 20px;
+  --text-lead--line-height: 1.3;
+  --text-lead--letter-spacing: -0.015em;
+
+  /* Named text-title, not text-page: --color-page owns the `text-page` utility
+     as a colour, which would shadow this size role. */
+  --text-title: 28px;
+  --text-title--line-height: 1.2;
+  --text-title--letter-spacing: -0.02em;
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+   --------------------------------------------------------------------------- */
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg-secondary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Counts, streaks, scores, dates — DESIGN.md section 4.3 */
+.count,
+.tabular {
+  font-variant-numeric: tabular-nums;
 }

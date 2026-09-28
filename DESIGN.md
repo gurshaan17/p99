@@ -303,13 +303,15 @@ Use `next/font/local` for supplied/local font assets where available. Do not mak
 
 ### 4.2 Type scale
 
-| Role | Size |
-|---|---|
-| `text-micro` | 11–12px |
-| `text-small` | 13–14px |
-| `text-body` | 15–16px |
-| `text-lead` | 20–24px |
-| page title | 28–32px |
+| Role | Size | Utility |
+|---|---|---|
+| `text-micro` | 11–12px | `text-micro` |
+| `text-small` | 13–14px | `text-small` |
+| `text-body` | 15–16px | `text-body` |
+| `text-lead` | 20–24px | `text-lead` |
+| page title | 28–32px | `text-title` |
+
+> The page-title size role is named `text-title`, not `text-page`. In Tailwind v4 `--color-page` also generates a `text-page` **colour** utility, which shadows a same-named size utility. Keep the page title on `text-title`.
 
 Do not create one-off font sizes in components. If a size is genuinely missing, add a semantic role here.
 
@@ -739,7 +741,7 @@ text-ink       text-ink-2     text-ink-3     text-accent-ink
 border-line    border-line-strong
 rounded-control    rounded-chip    rounded-card
 font-display   font-pixel     font-mono
-text-micro     text-small     text-body      text-lead
+text-micro     text-small     text-body      text-lead      text-title
 ```
 
 Do not write `bg-[#...]`, `text-[#...]`, `rounded-[...]`, `text-[17px]`, or `px-[13px]` unless the value is first promoted into this design system.
