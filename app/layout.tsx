@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
+import { Analytics } from "@vercel/analytics/next";
 import { bodySans, display, mono, pixel } from "./fonts";
 import { Frame } from "@/components/shell/frame";
 import { Sidebar } from "@/components/shell/sidebar";
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </div>
           </Frame>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
