@@ -35,7 +35,14 @@ export function Control({
   }
 
   return (
-    <button type="button" data-touch-target className={classes} {...props} />
+    <button
+      type="button"
+      data-touch-target
+      className={classes}
+      {...props}
+    >
+      {children}
+    </button>
   );
 }
 
