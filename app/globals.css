@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* DESIGN.md quotes reference class names (`max-w-[60rem]`, `py-3.5`, …) as
+   evidence. Without this, Tailwind's scanner picks them up as real utilities
+   and ships dead CSS that shadows the token-driven versions. */
+@source not "../DESIGN.md";
+
 /* ---------------------------------------------------------------------------
    Tokens — DESIGN.md section 3
    Raw values live here. Components reference them only through the semantic
@@ -46,9 +51,23 @@
   --dur-hover: 120ms;
   --dur-ui: 180ms;
 
+  /* Shadows — intentionally flat (section 6.3). Only a floating control gets one. */
+  --shadow-float: 0 1px 2px rgb(0 0 0 / 0.06);
+
   /* Layout */
   --shell-width: 60rem;
   --sidebar-width: 18rem;
+
+  /* Sidebar top spacing — DESIGN.md section 2.2 (clamp to 6vh on tall screens) */
+  --sidebar-pad-top: clamp(2rem, 6vh, 3.25rem);
+
+  /* Prose measures — DESIGN.md sections 2.2 (34ch intro) and 4.3 (68ch prose) */
+  --measure-intro: 34ch;
+  --measure-prose: 68ch;
+
+  /* Minimum touch target — DESIGN.md sections 12, 13.
+     Controls render at 32px; on coarse pointers they expand to 40px. */
+  --touch-target: 2.5rem;
 
   /* Layout — responsive (DESIGN.md section 3.4) */
   --pad-x: 1rem;
@@ -93,6 +112,8 @@
   --success: #4ade80;
   --warning: #facc15;
   --danger: #f87171;
+
+  --shadow-float: 0 1px 2px rgb(0 0 0 / 0.5);
 }
 
 /* ---------------------------------------------------------------------------
@@ -126,6 +147,9 @@
   --radius-control: var(--radius-control);
   --radius-chip: var(--radius-chip);
   --radius-card: var(--radius-card);
+
+  /* Shadows */
+  --shadow-float: var(--shadow-float);
 
   /* Font roles */
   --font-sans: var(--font-body-sans);
@@ -170,4 +194,21 @@ body {
 .count,
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* Focus — DESIGN.md sections 7.5, 13. Tokenized rather than left to the UA
+   default, so the ring is the accent colour with a 2px offset at every size. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Touch targets — DESIGN.md sections 12, 13. A control that renders at 32px
+   still needs a 40px hit area on coarse pointers. Density on pointer-fine
+   devices is untouched. */
+@media (pointer: coarse) {
+  [data-touch-target] {
+    min-height: var(--touch-target);
+    min-width: var(--touch-target);
+  }
 }

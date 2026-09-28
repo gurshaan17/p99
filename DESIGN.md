@@ -301,6 +301,10 @@ The supplied HTML proves three distinct font roles: `font-display`, `font-pixel`
 
 Use `next/font/local` for supplied/local font assets where available. Do not make components request fonts from external CSS.
 
+**Resolution in this repo** (`app/fonts.ts`): body sans `Geist`, display `Space_Grotesk`, pixel `Geist Pixel`, mono `Geist_Mono`. The pixel face pairs with the Geist superfamily so the wordmark reads as one system. Each loader exposes only a CSS variable, so components reference the roles by name and never by family.
+
+> The pixel role renders with `adjustFontFallback: false`. `Geist Pixel`'s ELSH axis has no published override metrics, so Turbopack cannot synthesise a fallback and prints a cosmetic `Failed to find font override values` warning on every build. It is expected; the role is a single short wordmark where the CLS benefit is negligible.
+
 ### 4.2 Type scale
 
 | Role | Size | Utility |
@@ -545,6 +549,17 @@ gap: 6px;
 - Active: `scale: 0.98`
 - Focus: visible 2px outline/ring
 
+**Resolution in this repo** (`components/ui/control.tsx`): the focus ring is global rather than per-component, so nothing can drift:
+
+```css
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+```
+
+**One instance per breakpoint.** Never mount a control twice and toggle visibility with `lg:hidden` / `hidden lg:flex`. Two mounted copies each attach their own listeners — a duplicated keyboard shortcut fires twice and cancels itself out. Compose one row and switch variants with `order` plus `hidden`, or move the listener to a component that renders exactly once.
+
 ### 7.6 Keyboard shortcut chip
 
 Reference pattern: `height: 20px`, `min-width: 20px`, `rounded-chip`, small horizontal padding, small sans text, subtle neutral background.
@@ -714,6 +729,19 @@ Do not copy reference brand logos. For the incident site, prefer abstract diagra
 
 Use `padding-bottom: env(safe-area-inset-bottom)` for fixed mobile controls where needed.
 
+**Touch targets.** Controls render at 32px but must present a 40px hit area on coarse pointers, without changing density on pointer-fine devices. `app/globals.css` handles this centrally:
+
+```css
+@media (pointer: coarse) {
+  [data-touch-target] {
+    min-height: var(--touch-target);
+    min-width: var(--touch-target);
+  }
+}
+```
+
+Mark any interactive element that renders smaller than 40px with `data-touch-target`. Do not compensate by making the control taller on touch.
+
 ---
 
 ## 13. Accessibility
@@ -745,6 +773,8 @@ text-micro     text-small     text-body      text-lead      text-title
 ```
 
 Do not write `bg-[#...]`, `text-[#...]`, `rounded-[...]`, `text-[17px]`, or `px-[13px]` unless the value is first promoted into this design system.
+
+> **Scanner gotcha:** Tailwind v4 extracts class-shaped strings from *any* scanned file, including Markdown and code comments. This document quotes many reference classes as evidence, so `app/globals.css` carries `@source not "../DESIGN.md"` to keep them out of the bundle. When writing a component, do not paste a class name into a comment either — name it in prose. Otherwise the reference value ships as dead CSS that silently shadows the token-driven class.
 
 ---
 
