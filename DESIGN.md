@@ -826,6 +826,58 @@ After each stage, compare at 375px, 768px, 1024px, and 1440px.
 
 ---
 
+## 15a. Deviations from the structure above, and why
+
+Recorded so the code and this document do not drift. Each of these was a
+deliberate decision, not an omission.
+
+**Incident content is typed data, not `.mdx` files.** `lib/questions.ts` holds a
+`Question` type and the incident array. The structured fields the UI actually
+needs — `constraints` for the spec table, `evidence` for the labelled blocks,
+`remember` for the takeaway list — have no clean MDX representation, and
+modelling them as frontmatter would mean parsing at request time to render
+something a literal already describes. Section 9's `.prose-site` styles are
+implemented in `globals.css` and used on `/about`; they are ready for incident
+prose if it is ever moved into files. Revisit if a non-technical editor needs to
+write incidents.
+
+**The list/grid switch lives in the archive filter row, not the top bar.**
+Section 7.1 groups it with the top bar's search and theme controls, but the top
+bar is shared by six routes and a view choice means nothing on five of them.
+Keeping it with the filters also keeps the state in one owner instead of
+requiring a shared context. The top bar is unchanged in every other respect.
+
+**Signup has no backend, so it composes a message instead of faking one.**
+Section 8.5 specifies a quiet confirmation after success. With no endpoint
+there is no success to report, and a form that shows "thanks" while delivering
+nothing is worse than no form. `components/about/mailto-signup.tsx` opens a
+prefilled message in the visitor's own mail client, which genuinely delivers.
+`CONTACT_EMAIL` in `lib/site.ts` gates the whole thing: while it is `null` the
+form is not rendered and `/about` shows where to follow along instead. Set the
+constant to a real address and the forms appear with no other change.
+
+**Not yet built: the prediction form and self-score.** Section 8.2 lists both as
+incident-page components. They are real product features rather than broken
+controls, so they were left out of the wiring pass. See section 8.2 — they need
+decisions on scale, persistence, and whether a self-score is honest without
+server-side state.
+
+**`NavItem` derives its own active state.** It reads the pathname instead of
+taking an `active` prop, so the highlight cannot drift from the route. Hash links
+(`/topics#caching`) deliberately stay inactive: the router does not expose the
+fragment, and guessing would light up every topic at once.
+
+**Sibling-row fade lives in CSS, not in class names.** Section 7.3's "fade the
+siblings of the hovered row" is one `:has()` rule in `globals.css` under
+`.list-rows`. Expressed as utility classes it is unreadable, and focus restoring
+full opacity is easier to guarantee in one place.
+
+**Press scale is a token.** `--press` exists so the 0.98 active transform is
+promoted into the system per section 14, rather than written as an arbitrary
+value in the control.
+
+---
+
 ## 16. Reference-specific corrections to the previous DESIGN.md
 
 The following previous assumptions should not be carried forward:

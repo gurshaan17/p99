@@ -74,18 +74,16 @@ export function MenuSheet() {
         >
           <SectionLabel>Navigation</SectionLabel>
           <nav aria-label="Mobile" className="flex flex-col">
-            {nav
-              .filter((item) => !item.inSections)
-              .map((item) => (
-                <NavItem
-                  key={item.href}
-                  href={item.href}
-                  icon={item.icon}
-                  label={item.label}
-                  count={item.count}
-                  onNavigate={close}
-                />
-              ))}
+            {nav.map((item) => (
+              <NavItem
+                key={item.href}
+                href={item.href}
+                icon={item.icon}
+                label={item.label}
+                count={item.count}
+                onNavigate={close}
+              />
+            ))}
           </nav>
         </div>
       ) : null}

@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ComponentType, ReactNode } from "react";
 
 /**
@@ -6,13 +9,17 @@ import type { ComponentType, ReactNode } from "react";
  *
  * flex / items-center / gap-0.5rem / rounded-chip / px-2 py-1.5 / text-body.
  * Counts are right-aligned mono, micro, tabular-nums (section 4.3).
+ *
+ * Active state is derived from the pathname rather than passed in, so it can
+ * never drift from the current route. Hash links (`/topics#caching`) stay
+ * inactive: the router does not expose the fragment, and guessing would light
+ * up every topic at once.
  */
 export function NavItem({
   href,
   icon: Icon,
   label,
   count,
-  active = false,
   onNavigate,
   className = "",
 }: {
@@ -20,11 +27,14 @@ export function NavItem({
   icon?: ComponentType<{ className?: string }>;
   label: string;
   count?: number;
-  active?: boolean;
   /** e.g. close the mobile sheet on navigation */
   onNavigate?: () => void;
   className?: string;
 }) {
+  const pathname = usePathname();
+  const isHash = href.includes("#");
+  const active = !isHash && pathname === href;
+
   const accessibleCount =
     count === undefined ? undefined : `${label}, ${count}`;
 

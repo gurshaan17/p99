@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Grid2x2, Mail, Plus, Search } from "lucide-react";
+import { Mail, Plus } from "lucide-react";
 import { Control } from "@/components/ui/control";
 import { Keycap } from "@/components/ui/keycap";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Mark } from "./mark";
 import { MenuSheet } from "./mobile-nav";
+import { SearchControl } from "./search-control";
 
 /**
  * Main top bar — DESIGN.md sections 2.3, 2.7, 5.4.
@@ -13,13 +14,14 @@ import { MenuSheet } from "./mobile-nav";
  * variants are toggled with `order` / `hidden` rather than rendered as two
  * stacked bars (section 2.7 asks for "a compact sticky bar", singular).
  *
- * Because it is one row, exactly one ThemeToggle is mounted, so the `T` shortcut
- * has exactly one listener. Two mounted copies would both fire and cancel out.
+ * Because it is one row, exactly one ThemeToggle and one CommandPalette are
+ * mounted, so the `T` and `⌘K` shortcuts each have exactly one listener. Two
+ * mounted copies would both fire and cancel out.
  *
- * Only the theme toggle carries a keycap: it is the only shortcut wired so far,
- * and section 17 forbids decorative keyboard hints. The ⌘K / ⌘E chips wait for
- * the command palette and random-question route. Search and view toggle render
- * `disabled` rather than pretending to work.
+ * Subscribe and Suggest are real links to their sections on /about rather than
+ * controls that appear to do something. The list/grid view switch lives with
+ * the archive's own filters, not here, because it only means anything on a
+ * route that has two views.
  */
 export function Topbar() {
   return (
@@ -35,50 +37,39 @@ export function Topbar() {
           p99
         </Link>
 
-        <Control className="order-2 hidden px-2 text-ink lg:flex">
-          <Mail className="size-4" strokeWidth={1.5} aria-hidden />
-          Subscribe
+        <Control asChild className="order-2 hidden lg:flex">
+          <Link href="/about#newsletter" className="px-2">
+            <Mail className="size-4" strokeWidth={1.5} aria-hidden />
+            Subscribe
+          </Link>
         </Control>
 
         <Control
-          aria-label="Suggest a topic"
-          title="Suggest a topic"
+          asChild
           className="order-3 hidden lg:flex"
         >
-          <Plus className="size-4" strokeWidth={1.5} aria-hidden />
+          <Link href="/about#suggest" aria-label="Suggest a topic">
+            <Plus className="size-4" strokeWidth={1.5} aria-hidden />
+          </Link>
         </Control>
 
         <div className="order-4 flex-1" />
 
-        <Control
-          aria-label="Search — not available yet"
-          title="Search"
-          disabled
-          className="order-5 hidden lg:flex"
-        >
-          <Search className="size-4" strokeWidth={1.5} aria-hidden />
-        </Control>
+        <div className="order-5 hidden lg:flex">
+          <SearchControl />
+        </div>
 
         <span aria-hidden className="order-6 mx-1 hidden h-4 w-px bg-line lg:block" />
 
-        <Control
-          aria-label="Grid view — not available yet"
-          title="Grid view"
-          disabled
-          className="order-7 hidden lg:flex"
-        >
-          <Grid2x2 className="size-4" strokeWidth={1.5} aria-hidden />
-        </Control>
-
-        <div className="order-8">
+        <div className="order-7">
           <ThemeToggle />
         </div>
 
-        <span className="order-9 hidden lg:inline-flex">
+        <span aria-hidden className="order-8 hidden lg:inline-flex">
           <Keycap>T</Keycap>
         </span>
 
-        <div className="order-10 lg:hidden">
+        <div className="order-9 lg:hidden">
           <MenuSheet />
         </div>
       </div>
