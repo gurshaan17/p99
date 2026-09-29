@@ -62,6 +62,11 @@ The high allocation rate is the actual driver: short-lived DTOs and string conca
 - **Tune G1 pause target** (\`-XX:MaxGCPauseMillis\`) down, understanding this trades pause length for pause frequency, not a free win.
 - **Increase young-gen size** to reduce collection frequency if allocation rate can't be reduced further.
 - Avoid jumping straight to "just add more heap" — a bigger heap without addressing allocation rate often means longer (if less frequent) pauses, not a fix.`,
+  remember: [
+    "An average CPU graph cannot show you a GC problem. A 300ms pause every 3 seconds is invisible in a mean and dominant in p99 — look at the distribution, never the average.",
+    "Every request in flight during a pause pays the whole pause. That is the whole mechanism, and it is why a tail metric catches this when the mean will not.",
+    "Allocation rate is the thing to instrument, not CPU. The pause is the symptom; the garbage is the cause.",
+  ],
   rubric: [
     {
       text: "Went to GC logs / timestamp correlation before touching tuning flags",

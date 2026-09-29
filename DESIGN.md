@@ -697,6 +697,7 @@ Single-column reading area, approximately 720px maximum width. Sections, each se
 5. prediction form
 6. solution reveal
 7. self-score
+8. three things to remember
 
 #### The attempt flow
 
@@ -1230,6 +1231,24 @@ at one picture, and which a browser picks is not worth leaving to chance. The
 `public/` copy and an unreferenced `favicon-96x96.png` were both deleted rather
 than left as dead weight; the `app/` one stays, because that one is the
 convention.
+
+**"Three things to remember" is a closing section, and it is gated.** The last
+list on the article, after the score, numbered, unindexed — the score above takes
+no index either, and these are the article's bookends, so numbering one of them
+would imply it belongs to the rubric. It repeats nothing the fix says: the fix is
+what to do about *this* incident, and these are what generalises past it.
+
+It was ungated at first, on the reasoning that a lesson is not an answer. That
+reasoning is wrong, and the cache-stampede incident is why: "a cache that is 98%
+effective can still be the whole outage" *is* the diagnosis, written as a
+generality. Ungated, a reader who never committed got the answer in the last three
+bullets, which is the one thing section 8.2 exists to prevent. So the component
+is presentational and `RememberGate` holds the check, because the two callers
+disagree — the home page's `Reveal` is already behind its own button and needs no
+second gate.
+
+Like the diagnosis, it ships in the page payload either way. That is deliberate
+and unchanged: it is pacing, not a paywall.
 
 **`/llms.txt` is generated, and it points at the HTML pages.** A route handler
 for the same reason as `rss.xml` — the link list depends on `publishedAt <= now`,

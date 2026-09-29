@@ -95,6 +95,41 @@ export function Fix({ text, index = "05" }: { text: string; index?: string }) {
   );
 }
 
+/**
+ * The three things to remember — DESIGN.md section 8.2.
+ *
+ * A closing list, numbered, after the fix. It repeats nothing the fix says; the
+ * fix is what to do about *this* incident and these are what generalises past it.
+ * A reader who has the fix open on a screen six months from now will not have this
+ * list, and that is the point — the fix is the thing that rots.
+ *
+ * Presentational and ungated. The gate is the caller's, because the two callers
+ * disagree: `Reveal` on the home page is already behind its own button, and the
+ * article has to put this behind the attempt. These are lessons, and a lesson that
+ * gives away its own incident has not earned the name.
+ */
+export function Remember({ items, index }: { items: string[]; index?: string }) {
+  if (items.length === 0) return null;
+
+  return (
+    <Section index={index ?? "08"} label="Three things to remember">
+      <ol className="flex flex-col">
+        {items.map((item, i) => (
+          <li
+            key={item}
+            className="flex gap-item border-b border-dashed border-line py-row text-body text-ink-2 text-pretty last:border-0"
+          >
+            <span aria-hidden className="font-mono text-small text-ink-3 tabular-nums">
+              {i + 1}.
+            </span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ol>
+    </Section>
+  );
+}
+
 /** Section wrapper: mono index + uppercase label, used by every block above. */
 export function Section({
   index,

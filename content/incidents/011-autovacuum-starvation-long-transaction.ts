@@ -61,10 +61,15 @@ On a table with heavy UPDATE/DELETE churn, this compounds daily: dead tuples acc
 - **Fix the reporting job**: run it against a read replica, or restructure it to not hold a single transaction open for the full duration (e.g., use a consistent snapshot via \`REPEATABLE READ\` for a shorter window, or batch the work).
 - **Monitor \`pg_stat_activity\` for long-running/idle-in-transaction sessions** proactively, not just when bloat is already visible.
 - Once the blocking transaction is fixed, a manual \`VACUUM\` (not necessarily \`VACUUM FULL\`, which locks the table) reclaims the existing bloat.`,
+  remember: [
+    "Autovacuum is not a scheduler problem, it is a permission problem. It knows about the dead rows and is not allowed to remove them yet — the blocker is a transaction, and more aggressive autovacuum settings will not touch that.",
+    "The xmin horizon is global. One long-lived transaction stops reclamation everywhere, not just on the table it is reading, which is why the blast radius is so much wider than the offending query.",
+    "Throughput degrading with no deploy and no traffic change is usually bloat. If rows are being updated and the table is large, look at table size and dead-tuple count before you look at the query.",
+  ],
   rubric: [
     {
-      text: "Checked pg_stat_activity for long transactions before any DB-level fix",
-      dim: "process",
+      text: "Identified the long-running transaction as the vacuum blocker",
+      dim: "correctness",
     },
     {
       text: "Correctly identified the xmin horizon mechanism, not just 'vacuum is broken'",

@@ -58,9 +58,14 @@ This confirms as a stampede rather than genuine load: the query count spike is d
 2. **Request coalescing (single-flight)**: when a cache miss occurs, the first request acquires a short-lived lock (e.g., \`SET key:lock NX EX 5\`) and regenerates the value; concurrent requests for the same key wait briefly and read the freshly-set cache instead of each hitting Postgres.
 
 A stale-while-revalidate pattern (serve the expired value while one request refreshes it in the background) removes the latency spike entirely, at the cost of briefly serving stale data — worth it for most read-heavy aggregations.`,
+  remember: [
+    "A cache that is 98% effective can still be the whole outage. Hit rate describes the average; the stampede is a distribution question, and averages hide it.",
+    "Read every expiry together. Keys written in one batch expire in one batch, so a per-key TTL that looks randomised is synchronised if the writer is.",
+    "Missing on a hot key is a different problem from a slow query. Fix the coordination, not the database — singleflight or a per-key lock is usually the whole fix.",
+  ],
   rubric: [
     {
-      text: "Identified synchronized expiry, not query slowness, as the cause",
+      text: "Explained that synchronized expiry, not the cache itself, is the trigger",
       dim: "correctness",
     },
     {

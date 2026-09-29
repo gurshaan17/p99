@@ -10,6 +10,7 @@ import {
   Section,
   Symptom,
 } from "@/components/question/incident";
+import { RememberGate } from "@/components/question/remember-gate";
 import { PredictionForm } from "@/components/question/prediction-form";
 import { DiagnosisReveal } from "@/components/question/diagnosis-reveal";
 import { RubricSelfCheck } from "@/components/question/rubric-self-check";
@@ -116,6 +117,17 @@ export default async function IncidentPage({
           asymmetry the footer was moved out of the article to avoid.
         */}
         <ScoreCard incident={incident} />
+
+        {/*
+          Last, after the score, so it reads as the conclusion rather than as
+          another prompt. It takes no index: the score above took none for the same
+          reason — these are the bookends of the article, and numbering one of them
+          would put a `07` on the score and imply it belongs to the rubric.
+
+          Gated through `RememberGate` because these three lines are the incident's
+          lesson written generally, and a lesson is still the answer.
+        */}
+        <RememberGate incident={incident} />
       </article>
 
       {/*

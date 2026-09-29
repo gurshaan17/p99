@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Incident } from "@/lib/incidents";
 import { PrimaryButton } from "@/components/ui/button";
-import { Diagnosis, Fix, Section } from "@/components/question/incident";
+import { Diagnosis, Fix, Remember, Section } from "@/components/question/incident";
 import { Rubric } from "@/components/question/rubric";
 
 /**
@@ -36,6 +36,13 @@ export function Reveal({ incident }: { incident: Incident }) {
       <Section index="06" label="Rubric">
         <Rubric rubric={incident.rubric} />
       </Section>
+      {/*
+        `Remember` takes its own index rather than inheriting `06` — this is the
+        home page's standalone run (04, 05, 06) and the article's continues past
+        the self-score, so the two renderers pass different numbers and the
+        component defaults to neither.
+      */}
+      <Remember items={incident.remember} index="07" />
     </div>
   );
 }

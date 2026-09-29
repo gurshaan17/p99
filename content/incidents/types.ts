@@ -54,4 +54,15 @@ export interface Incident {
   diagnosis: string; // markdown-formatted string, multi-paragraph ok
   fix: string; // markdown-formatted string
   rubric: { text: string; dim: "process" | "correctness" | "depth" }[];
+  /**
+   * The three things worth carrying out of the incident — the compressed lesson,
+   * after the specific one.
+   *
+   * Separate from `rubric` on purpose. The rubric scores whether *this* reader's
+   * answer covered the mechanism, and is checked by the reader against their own
+   * reasoning. These are the statements that are true whether or not anybody
+   * reasoned well, so there is nothing to self-score about them — they are what
+   * the incident was for, not a judgement on the reader.
+   */
+  remember: string[];
 }

@@ -59,9 +59,14 @@ This creates a feedback loop: killing a busy-but-healthy pod removes capacity ex
   fix: `- **Decouple the health endpoint from the busy request-handling path**: serve it from a separate lightweight handler or thread that isn't queued behind regular traffic, or have it check a fast in-memory "am I initialized and not deadlocked" flag rather than doing real work.
 - **Loosen the probe**: increase \`timeoutSeconds\` and \`failureThreshold\` so a momentary slowdown under load isn't treated as a crash.
 - **Use readiness probes for load-shedding, liveness probes for actual deadlock/crash detection** — these are different concerns and conflating them is the root design mistake here, not just the specific numbers chosen.`,
+  remember: [
+    "A liveness probe answers 'is this process broken?', not 'is this process busy?'. Asking it the second question makes the orchestrator kill healthy capacity precisely when you need it.",
+    "The feedback loop is the tell. When restarts rise with traffic and available replicas fall, the system is removing capacity in response to its own symptom.",
+    "One slow check is not a failure mode. `failureThreshold: 1` removes every margin the probe has — a threshold has to tolerate ordinary slowness or it will read it as death.",
+  ],
   rubric: [
     {
-      text: "Recognized 'busy' was being treated as 'unhealthy'",
+      text: "Identified that the probe conflates 'busy' with 'unhealthy'",
       dim: "correctness",
     },
     {

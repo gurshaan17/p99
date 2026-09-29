@@ -57,9 +57,14 @@ The tell is the split between "time to execute the query" (fast, once a connecti
 - **Set \`statement_timeout\`** on the reporting queries so a single bad filter combination can't hold a connection for 8 seconds unbounded.
 - **Add per-endpoint concurrency limits** (e.g., a semaphore) so the reporting endpoint can't accept unlimited concurrent slow requests even within its own pool.
 - Longer term: move reporting queries to a read replica entirely, so they can never contend with transactional traffic for the same connection budget.`,
+  remember: [
+    "A connection pool has no notion of fairness by query cost. It hands out connections in arrival order, so one slow class of query delays every fast one behind it.",
+    "p50 being healthy while p99 is a timeout is a pool-queue signature, not a query problem. The queries are fine; they are waiting.",
+    "Bound the pools by workload, not just in total. Separate pools let a slow class exhaust its own share instead of everyone's.",
+  ],
   rubric: [
     {
-      text: "Distinguished pool-acquisition wait from query execution time",
+      text: "Identified head-of-line blocking at the connection pool",
       dim: "correctness",
     },
     {
