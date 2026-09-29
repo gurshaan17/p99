@@ -3,13 +3,20 @@ import { ThemeProvider } from "next-themes";
 import { Analytics } from "@vercel/analytics/next";
 import { bodySans, display, mono, pixel } from "./fonts";
 import { Frame } from "@/components/shell/frame";
+import { site } from "@/lib/site";
 import { Sidebar } from "@/components/shell/sidebar";
 import { Topbar } from "@/components/shell/topbar";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "p99",
-  description: "One production incident a day. Diagnose the system, not the algorithm.",
+  description: site.description,
+  // Autodiscovery, so a reader can find the feed without the topbar link. The
+  // `alternates` form is what Next turns into `<link rel="alternate">`; browsers
+  // and feed readers both look for it before anything visible on the page.
+  alternates: {
+    types: { "application/rss+xml": "/rss.xml" },
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -786,6 +786,13 @@ them apart is also what lets each incident sit under exactly one section.
 
 Inline in the promo panel: desktop input + button, mobile stacked. After success, replace the form with a quiet confirmation line. No modal signup.
 
+Implemented as capture-only for now. `POST /api/subscribe` validates the address
+and writes it to a Redis set; there is no send and no double opt-in, because daily
+sends need a content cadence worth mailing and a half-built confirmation flow is
+worse than none. The endpoint answers identically for a new and a returning
+address — "you are already subscribed" is a small leak about a stranger's
+membership for no product gain.
+
 ---
 
 ## 9. Content / MDX
@@ -1096,6 +1103,33 @@ existing `.reveal` class — the 8px rise and fade over `--dur-ui` that section 
 defines and that `globals.css` already guards under `prefers-reduced-motion`. A
 second keyframe for the same gesture would have been the motion equivalent of a
 second spacing scale.
+
+**The newsletter is no longer gated on `CONTACT_EMAIL`; the suggestion form still
+is.** Section 15a originally gated both on a receiving address, which was correct
+while the only way to subscribe was composing a mailto — with no inbox, there was
+nothing to address. Capture changes that: `POST /api/subscribe` writes to a Redis
+set and needs no destination, so hiding the form behind that flag would leave a
+working endpoint with no way to reach it, and section 15's "a control that
+pretends to accept a subscription it never sends is worse than no control" now
+cuts the other way. The topic-suggestion form keeps the gate, because it is still
+a mailto and still needs a real inbox to be worth anything.
+
+**There is one Redis client and it is constructed lazily.** `lib/redis.ts` exports
+a getter, not a `const`. The env vars are read inside the function so that
+importing the module on a machine with no credentials does not throw — which
+matters because route handlers import at module scope, and a build machine is not
+always the machine that holds the secrets. The same reasoning is why the
+`Ratelimit` instance in `app/api/subscribe/route.ts` is built on first call rather
+than at module scope. A second `new Redis(...)` anywhere would mean two connection
+pools and two sets of credentials, so there is deliberately no other one.
+
+**`site.description` exists because the sentence was already in two places.** The
+full tagline was hardcoded in the sidebar intro and in the document metadata while
+`site.tagline` held only "One production incident a day." Adding a third copy for
+the RSS channel would have been the path of least resistance and would have left
+the sentence with no owner. It is promoted to `lib/site.ts` and referenced by all
+three; `tagline` stays the short form, which is what the About page's own heading
+wants.
 
 **The self-check indicator has no `data-touch-target`.** Section 12's global
 `pointer: coarse` rule sets both `min-height` and `min-width` to 40px, which

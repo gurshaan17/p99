@@ -1,6 +1,7 @@
 "use client";
 
 import { nav, topicNav } from "@/lib/nav";
+import { site } from "@/lib/site";
 import { Mark } from "./mark";
 import { NavItem, SectionLabel } from "@/components/ui/nav-item";
 
@@ -28,7 +29,7 @@ export function Sidebar() {
         <div className="font-pixel text-lead tracking-tight text-ink">p99</div>
 
         <p className="max-w-(--measure-intro) text-body leading-relaxed text-ink">
-          One production incident a day. Diagnose the system, not the algorithm.
+          {site.description}
         </p>
       </div>
 

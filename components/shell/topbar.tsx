@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, Plus } from "lucide-react";
+import { Mail, Plus, Rss } from "lucide-react";
 import { Control } from "@/components/ui/control";
 import { Keycap } from "@/components/ui/keycap";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -63,6 +63,20 @@ export function Topbar() {
 
         <div className="order-7">
           <ThemeToggle />
+        </div>
+
+        {/*
+          RSS, in the same `Control` icon language as the theme toggle (section
+          11: 16px, stroke 1.5, `currentColor`). A link rather than a control that
+          fetches and opens a reader, since the browser and every feed reader
+          already handle the format.
+        */}
+        <div className="order-7.5 hidden lg:flex">
+          <Control asChild>
+            <a href="/rss.xml" aria-label="RSS feed" title="RSS feed">
+              <Rss className="size-4" strokeWidth={1.5} aria-hidden />
+            </a>
+          </Control>
         </div>
 
         <span aria-hidden className="order-8 hidden lg:inline-flex">

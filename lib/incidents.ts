@@ -23,6 +23,29 @@ export function getIncident(slug: string): Incident | undefined {
   return bySlug.get(slug);
 }
 
+/**
+ * Whether an incident is public yet.
+ *
+ * `publishedAt` is a date, not a timestamp, so an incident scheduled for today
+ * is publishable from midnight local time. The build is a snapshot, though: a
+ * page prerendered at 09:00 cannot re-evaluate itself at midnight, so anything
+ * consuming this needs a dynamic render or a rebuild to pick up the flip. That is
+ * the right way round for a feed that is fetched on a schedule, and the wrong way
+ * round for a page that should change on its own — which is why the static
+ * surfaces below read `incidents` directly rather than going through this.
+ */
+export function isPublished(incident: Incident, now = new Date()): boolean {
+  // Comparing date strings avoids the `new Date("YYYY-MM-DD")` UTC-parsing trap
+  // that would read as the previous day for anyone west of Greenwich.
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  return incident.publishedAt <= today;
+}
+
+/** The public set, newest first. `incidents` is already sorted by `publishedAt`. */
+export function publishedIncidents(now = new Date()): Incident[] {
+  return incidents.filter((incident) => isPublished(incident, now));
+}
+
 /** The featured incident for Today — the most recently published one. */
 export const todaysIncident = incidents[0];
 

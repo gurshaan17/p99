@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CONTACT_EMAIL, site } from "@/lib/site";
 import { SectionHeader } from "@/components/archive/section-header";
 import { MailtoSignup } from "@/components/about/mailto-signup";
+import { SubscribeForm } from "@/components/about/subscribe-form";
 
 export const metadata: Metadata = {
   title: "About — p99",
@@ -49,26 +50,14 @@ export default function AboutPage() {
           title="Newsletter"
           description="One incident a day, nothing else."
         />
-        {CONTACT_EMAIL ? (
-          <MailtoSignup
-            to={CONTACT_EMAIL}
-            cta="Subscribe"
-            placeholder="you@example.com"
-            subject="Subscribe to p99"
-            body={(email) => `Please add ${email} to the p99 newsletter.`}
-          />
-        ) : (
-          <p className="text-body text-ink-3">
-            The list is not open yet.{" "}
-            <a
-              href={site.repo}
-              className="text-accent-ink underline-offset-4 hover:underline"
-            >
-              Watch the repository
-            </a>{" "}
-            to hear when it opens.
-          </p>
-        )}
+        {/*
+          Capture is ungated: there is a real endpoint behind it, so this renders
+          unconditionally. It used to be gated on `CONTACT_EMAIL` like the
+          suggestion form below, which was right when the only way to subscribe
+          was composing a mailto. That constraint is gone — the list now writes to
+          storage and needs no receiving address.
+        */}
+        <SubscribeForm />
       </section>
 
       <section

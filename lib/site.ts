@@ -6,6 +6,15 @@
 export const site = {
   name: "p99",
   tagline: "One production incident a day.",
+  /**
+   * The full one-liner. Was hardcoded in two places (the sidebar intro and the
+   * document metadata) while `tagline` held the short form, so a third copy would
+   * have been the obvious way to reach the feed and the wrong one — the sentence
+   * would then have three homes and no owner. Promoted here instead, since this
+   * module is the one place for values that are neither tokens nor content.
+   */
+  description:
+    "One production incident a day. Diagnose the system, not the algorithm.",
   repo: "https://github.com/gurshaan17/p99",
 } as const;
 
