@@ -277,6 +277,27 @@ body {
   outline-offset: 2px;
 }
 
+/* Exception: the command palette's search field takes no ring.
+   This lives here rather than as `outline-none!` on the element because the rule
+   above is unlayered and Tailwind's utilities are in `@layer utilities` — layered
+   declarations lose to unlayered ones no matter the specificity, so a utility
+   class cannot win this fight and `!important` would be the only class-based
+   route. Keeping the override beside the rule it excepts means the focus system
+   still has exactly one owner, which is the same reasoning as the `.list-rows`
+   rule below.
+
+   The selector is the attribute, not a class: cmdk sets `cmdk-input=""` on the
+   element (as it does for every one of its hooks), so a `.cmdk-input` class
+   selector would silently match nothing and the ring would survive.
+
+   Dropping the ring here does not lose keyboard position: the field is
+   autofocused whenever the palette opens, so the ring is on screen permanently
+   and reads as an error state rather than a focus state, and the selected result
+   in the list below is what actually shows where you are. */
+[cmdk-input]:focus-visible {
+  outline: none;
+}
+
 /* Reveal — DESIGN.md section 10. The 8px rise collapses to a pure fade. */
 @keyframes reveal {
   from {

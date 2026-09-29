@@ -1,4 +1,11 @@
-import { Archive, Flame, Info, type LucideIcon } from "lucide-react";
+import {
+  Archive,
+  BookOpen,
+  Flame,
+  Info,
+  Layers,
+  type LucideIcon,
+} from "lucide-react";
 import { topicCounts } from "@/lib/incidents";
 
 export type NavItemSpec = {
@@ -19,13 +26,19 @@ export type TopicNavSpec = {
  *
  * `count` is `undefined` where there is nothing to count yet; NavItem omits the
  * slot entirely rather than rendering a zero (section 11).
+ *
+ * Every row carries an icon (section 11: 16px, `currentColor`, monochrome). Two
+ * entries previously had none, which read as a missing value rather than a
+ * deliberate absence — the topic list below has no icons precisely because it is
+ * indented secondary navigation, so an unadorned primary row is ambiguous between
+ * the two.
  */
 export const nav: NavItemSpec[] = [
   { href: "/", label: "Today", icon: Info },
   { href: "/archive", label: "Archive", icon: Archive },
-  { href: "/topics", label: "Topics" },
+  { href: "/topics", label: "Topics", icon: Layers },
   { href: "/streak", label: "Streak", icon: Flame },
-  { href: "/about", label: "About" },
+  { href: "/about", label: "About", icon: BookOpen },
 ];
 
 /**
