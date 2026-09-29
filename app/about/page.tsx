@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { CONTACT_EMAIL, site } from "@/lib/site";
+import { OPEN_GRAPH } from "@/lib/metadata";
 import { SectionHeader } from "@/components/archive/section-header";
 import { MailtoSignup } from "@/components/about/mailto-signup";
 import { SubscribeForm } from "@/components/about/subscribe-form";
 
 export const metadata: Metadata = {
-  title: "About — p99",
+  title: "About",
   description: site.tagline,
+  alternates: { canonical: "/about" },
+  openGraph: { ...OPEN_GRAPH, url: "/about" },
 };
 
 /**

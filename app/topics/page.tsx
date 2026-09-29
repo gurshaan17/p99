@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { incidentsByTopic, topicCounts } from "@/lib/incidents";
+import { OPEN_GRAPH } from "@/lib/metadata";
 import { SectionHeader } from "@/components/archive/section-header";
 import { ListRow } from "@/components/archive/list-row";
 
 export const metadata: Metadata = {
-  title: "Topics — p99",
+  title: "Topics",
   description: "Every incident, grouped by what actually broke.",
+  alternates: { canonical: "/topics" },
+  openGraph: { ...OPEN_GRAPH, url: "/topics" },
 };
 
 /**

@@ -1190,6 +1190,47 @@ the site's real history and capped at a year, which grows as the site ages. Wort
 revisiting if the site ever publishes retroactively, since a backdated incident
 would appear in a column that already scrolled past.
 
+**The social card is one definition in `lib/metadata`, and every page spreads it.**
+Adding a per-page `openGraph` object to fix its `og:url` silently deleted the
+image, the type and the site name from all five routes. Next merges metadata by
+*replacing duplicate keys*, and `openGraph` is a single key, so a page declaring
+`openGraph: { url }` overrides the layout's object instead of merging into it.
+Nothing failed — the build passed and every page still looked correct — which is
+what makes it worth writing down: the only symptom is a missing card in someone
+else's feed. `title` and `description` are absent from the shared object for the
+mirror-image reason, since leaving them unset is what lets each page's own title
+win. `twitter` stays in the layout alone and is never spread, which is safe only
+because no page overrides it; the same rule that breaks `openGraph` is what keeps
+it inherited intact.
+
+**No canonical or `og:url` in the layout.** Both are inherited by every route
+underneath, so one `"/"` there would tell crawlers that `/topics`, `/streak` and
+`/archive` are duplicates of the home page. Each page declares its own, and
+`app/page.tsx` grew a metadata export purely to carry `"/"`. The brand suffix
+moved the same way: the four page titles hardcoded `— p99`, and a `title.template`
+in the layout is now the only place it is written.
+
+**`theme-color` is in `viewport` with two media queries, not `metadata` with one.**
+Next has deprecated it in `metadata`, and a dual-theme site following the system
+preference cannot be correct with a single value. The colours mirror `--bg`.
+
+**`public/favicon/site.webmanifest` was scaffolding, and it was never linked.**
+It declared `name: "MyWebSite"`, and its icon `src` paths pointed at the site root
+while the files sat in `/favicon/` — so both resolved to 404s. Nothing referenced
+it, which is the only reason it had gone unnoticed. It now names the site, points
+at the real files, and is declared from the layout. The `maskable` purpose was
+dropped rather than kept: it cannot be confirmed without viewing the icons, and
+claiming it falsely makes Android crop them.
+
+**`app/favicon.ico` and `public/favicon/favicon.ico` are the same file.** Both
+were added by one commit and are byte-identical. The layout declares only the SVG,
+because `app/favicon.ico` is the file convention and Next already emits a link for
+it — declaring the `.ico` as well put two `rel="icon"` links in the head pointing
+at one picture, and which a browser picks is not worth leaving to chance. The
+`public/` copy and an unreferenced `favicon-96x96.png` were both deleted rather
+than left as dead weight; the `app/` one stays, because that one is the
+convention.
+
 ---
 
 ## 16. Reference-specific corrections to the previous DESIGN.md

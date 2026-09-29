@@ -1,4 +1,5 @@
 import { publishedIncidents } from "@/lib/incidents";
+import { ORIGIN } from "@/lib/origin";
 import { site } from "@/lib/site";
 
 /**
@@ -22,17 +23,10 @@ import { site } from "@/lib/site";
 export const dynamic = "force-dynamic";
 
 /**
- * Absolute base URL. Read from the deployment's own environment so preview and
- * production builds both emit links that resolve, falling back to the canonical
- * repo host when the variable is absent (a local dev server has no VERCEL_URL).
+ * Absolute base URL comes from `lib/origin`, which the social preview metadata
+ * also reads — a feed pointing at a different host than the page's own card is
+ * the kind of inconsistency nobody catches before shipping.
  */
-const ORIGIN = (
-  process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "https://p99.vercel.app"
-).replace(/\/$/, "");
 
 /**
  * Escape for XML character data.

@@ -1,9 +1,25 @@
+import type { Metadata } from "next";
 import { recentIncidents, todaysIncident, topicMeta } from "@/lib/incidents";
+import { OPEN_GRAPH } from "@/lib/metadata";
 import { ListRow } from "@/components/archive/list-row";
 import { SectionHeader } from "@/components/archive/section-header";
 import { GhostLink } from "@/components/ui/button";
 import { Constraints, Evidence, Symptom } from "@/components/question/incident";
 import { Reveal } from "@/components/question/reveal";
+
+/**
+ * Only a canonical and an `og:url`, both `/`.
+ *
+ * The title and description are inherited from the layout, and the other three
+ * routes set their own canonical. Declaring them here rather than in the layout
+ * is the point: a layout-level canonical or `og:url` is inherited by every route
+ * underneath it, so a single `"/"` in `layout.tsx` would tell every crawler that
+ * `/topics`, `/streak` and `/archive` are duplicates of the home page.
+ */
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: { ...OPEN_GRAPH, url: "/" },
+};
 
 /**
  * Today — DESIGN.md section 8.1.

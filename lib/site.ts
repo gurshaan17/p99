@@ -19,6 +19,34 @@ export const site = {
 } as const;
 
 /**
+ * Social preview image — the card shown when the site is pasted into a chat, a
+ * Slack channel, or a feed reader.
+ *
+ * Referenced by path and made absolute by `metadataBase`, rather than built as a
+ * URL here. The same reason the feed resolves one origin: two places that know
+ * how to spell the host will eventually disagree, and the failure is a broken
+ * image on someone else's server rather than an error in this one.
+ *
+ * The dimensions are declared because crawlers are told not to re-fetch and
+ * re-decode an image they already hold, and because a consumer can reserve the
+ * right box before the bytes arrive instead of reflowing when it loads.
+ *
+ * 1731x909 is a 1.904:1 ratio — the same 1.91:1 the 1200x630 recommendation
+ * describes, so this is that shape at a higher resolution rather than a
+ * different one, and no cropping is needed to use it.
+ *
+ * `alt` is a description rather than a caption. It is read in place of the image
+ * when the image cannot be, so it has to carry the card's meaning by itself; the
+ * wordmark and tagline are what the card is, so that is what it says.
+ */
+export const OG_IMAGE = {
+  path: "/og-image.png",
+  width: 1731,
+  height: 909,
+  alt: "p99 — One production incident a day. Diagnose the system, not the algorithm.",
+} as const;
+
+/**
  * Contact address.
  *
  * `null` until a real inbox exists. Serves both the newsletter signup and the

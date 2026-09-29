@@ -9,10 +9,13 @@ import {
 } from "@/lib/incidents";
 import { SectionHeader } from "@/components/archive/section-header";
 import { StreakRecord } from "@/components/archive/streak-record";
+import { OPEN_GRAPH } from "@/lib/metadata";
 
 export const metadata: Metadata = {
-  title: "Streak — p99",
+  title: "Streak",
   description: "Every day you diagnosed something instead of guessing.",
+  alternates: { canonical: "/streak" },
+  openGraph: { ...OPEN_GRAPH, url: "/streak" },
 };
 
 /**
