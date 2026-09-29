@@ -35,8 +35,8 @@ export function ArchiveView({ incidents }: { incidents: Incident[] }) {
   );
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-col gap-block">
+      <div className="flex flex-wrap items-center gap-item">
         <ArchiveFilter
           label="Tag"
           options={["all", ...tags] as const}

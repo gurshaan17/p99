@@ -28,7 +28,7 @@ export function Constraints({ items }: { items: string[] }) {
         {items.map((item) => (
           <li
             key={item}
-            className="border-b border-dashed border-line py-2.5 text-body text-ink-2 text-pretty last:border-0"
+            className="border-b border-dashed border-line py-row text-body text-ink-2 text-pretty last:border-0"
           >
             {item}
           </li>
@@ -45,8 +45,14 @@ export function Evidence({ items }: { items: string[] }) {
         {items.map((item) => (
           <li
             key={item}
-            className="flex gap-2.5 border-b border-dashed border-line py-2.5 text-body text-ink-2 text-pretty last:border-0"
+            className="flex items-baseline gap-item border-b border-dashed border-line py-row text-body text-ink-2 text-pretty last:border-0"
           >
+            {/*
+              `items-baseline` on the row aligns the arrow to the first line's
+              baseline. With the default `stretch` the arrow inherited its own
+              13px/1.5 line box inside a 24.75px body line box, which left it
+              sitting roughly 3px high against the text it labels.
+            */}
             <span aria-hidden className="font-mono text-small text-ink-3">
               →
             </span>
@@ -100,7 +106,7 @@ export function Section({
     <section aria-labelledby={id} className="flex flex-col">
       <h2
         id={id}
-        className="mb-2 flex items-baseline gap-2.5 font-mono text-micro tracking-wider text-ink-3 uppercase"
+        className="mb-item flex items-baseline gap-item font-mono text-micro tracking-wider text-ink-3 uppercase"
       >
         <span className="tabular-nums">{index}</span>
         {label}

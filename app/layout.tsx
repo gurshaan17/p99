@@ -25,7 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <Sidebar />
             <div className="flex min-w-0 flex-col">
               <Topbar />
-              <main className="flex-1">{children}</main>
+              <main className="flex-1 px-(--pad-x) py-(--pad-y)">{children}</main>
             </div>
           </Frame>
         </ThemeProvider>

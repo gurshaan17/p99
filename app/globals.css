@@ -47,6 +47,9 @@
   --radius-full: 9999px;
   /* 18px tag/grid mark (section 11) */
   --size-mark: 1.125rem;
+  /* 1px radius on the streak grid cells and palette scrim blur (section 8.3) */
+  --radius-hairline: 1px;
+  --blur-scrim: 2px;
 
   /* Motion */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -70,6 +73,51 @@
   /* Prose measures — DESIGN.md sections 2.2 (34ch intro) and 4.3 (68ch prose) */
   --measure-intro: 34ch;
   --measure-prose: 68ch;
+
+  /* -------------------------------------------------------------------------
+     Spacing scale — DESIGN.md section 3.5.
+
+     Base unit is 2px, not 4px. The values this design language is measured
+     against are all 2px multiples: nav rows are `py-1.5` (6px, section 7.1),
+     the toolbar and list rows are `py-2.5` (10px, sections 5.4 and 2.5), the
+     promo panel is `py-3.5` (14px, section 2.6), controls pad and gap 6px
+     (section 7.5), and the tag mark is 18px (section 11). A 4px-only scale
+     cannot express those without silently resizing chrome the reference
+     specifies, so the scale carries the half steps instead.
+
+     Prefer a semantic token (`--space-section`, `--space-row`, …) over a raw
+     step whenever the value means a recurring relationship rather than a
+     one-off offset.
+     ------------------------------------------------------------------------- */
+  --space-0: 0;
+  --space-1: 0.25rem; /*  4px */
+  --space-1-5: 0.375rem; /*  6px */
+  --space-2: 0.5rem; /*  8px */
+  --space-2-5: 0.625rem; /* 10px */
+  --space-3: 0.75rem; /* 12px */
+  --space-3-5: 0.875rem; /* 14px */
+  --space-4: 1rem; /* 16px */
+  --space-5: 1.25rem; /* 20px */
+  --space-6: 1.5rem; /* 24px */
+  --space-8: 2rem; /* 32px */
+  --space-12: 3rem; /* 48px */
+  --space-16: 4rem; /* 64px */
+
+  /* Semantic spacing — the relationships that recur across files, so the same
+     one is used everywhere it occurs instead of several close values. */
+  /* between top-level page sections */
+  --space-section: var(--space-8);
+  /* between sibling blocks that form one module (the sidebar identity block) */
+  --space-block: var(--space-5);
+  /* between adjacent items, and label -> its body */
+  --space-item: var(--space-2);
+  /* reading-list row padding: constraints, evidence, rubric, answer options */
+  --space-row: var(--space-2-5);
+  /* compact catalogue/nav row padding: sidebar nav rows, archive list rows
+     (DESIGN.md sections 7.1 and 2.5 pin both at 6px) */
+  --space-row-compact: var(--space-1-5);
+  /* a standalone dashed divider: same space above and below, everywhere */
+  --space-divider: var(--space-5);
 
   /* Minimum touch target — DESIGN.md sections 12, 13.
      Controls render at 32px; on coarse pointers they expand to 40px. */
@@ -154,9 +202,25 @@
   --radius-control: var(--radius-control);
   --radius-chip: var(--radius-chip);
   --radius-card: var(--radius-card);
+  --radius-hairline: var(--radius-hairline);
 
   /* Sizes */
   --size-mark: var(--size-mark);
+
+  /* Blur */
+  --blur-scrim: var(--blur-scrim);
+
+  /* Spacing — the semantic relationships mapped onto Tailwind's spacing
+     namespace so they resolve to real utilities (`gap-section`, `py-row`,
+     `my-divider`, …). The raw `--space-*` steps above are the scale of record;
+     one-off offsets continue to use Tailwind's own numeric utilities, which
+     resolve to those same steps, rather than a second parallel vocabulary. */
+  --spacing-section: var(--space-section);
+  --spacing-block: var(--space-block);
+  --spacing-item: var(--space-item);
+  --spacing-row: var(--space-row);
+  --spacing-row-compact: var(--space-row-compact);
+  --spacing-divider: var(--space-divider);
 
   /* Shadows */
   --shadow-float: var(--shadow-float);

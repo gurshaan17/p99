@@ -286,6 +286,77 @@ Do not scatter arbitrary padding values throughout components.
 
 These are product defaults, not measured reference values. If DevTools provides the real computed values, update these tokens only.
 
+### 3.5 Spacing scale
+
+One base unit, one named step per value, and a small set of semantic tokens for
+the relationships that recur across files.
+
+**The base unit is 2px, not 4px.** The values this design language is measured
+against are all 2px multiples, so a 4px-only scale cannot express them without
+silently resizing chrome the reference specifies:
+
+| From | Reference value | Step |
+|---|---|---|
+| 7.1 nav rows | `px-2 py-1.5` → 6px vertical | `--space-1-5` |
+| 5.4 toolbar, 2.5 list rows | `py-2.5` → 10px | `--space-2-5` |
+| 2.6 promo panel | `px-4 py-3.5` → 14px | `--space-3-5` |
+| 7.5 controls | padding and gap 6px | `--space-1-5` |
+| 11 tag mark | 18px | outside the scale, on `--size-mark` |
+
+```css
+:root {
+  --space-0: 0;
+  --space-1: 0.25rem;   /*  4px */
+  --space-1-5: 0.375rem;/*  6px */
+  --space-2: 0.5rem;    /*  8px */
+  --space-2-5: 0.625rem;/* 10px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-3-5: 0.875rem;/* 14px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+}
+```
+
+#### Semantic spacing
+
+Prefer these over a raw step whenever the value means a recurring
+relationship. Each is mapped into Tailwind's spacing namespace, so it resolves
+to a real utility.
+
+| Token | Value | Relationship |
+|---|---|---|
+| `--space-section` | 32px | between top-level page sections |
+| `--space-block` | 20px | between sibling blocks forming one module |
+| `--space-item` | 8px | between adjacent items, and label → its body |
+| `--space-row` | 10px | reading-list row: constraints, evidence, rubric, options |
+| `--space-row-compact` | 6px | compact catalogue row: sidebar nav, archive list |
+| `--space-divider` | 20px | a standalone dashed divider, **same above and below** |
+
+```
+gap-section  py-row  py-row-compact  my-divider  pt-divider  mb-item  gap-item  gap-block
+```
+
+Rules:
+
+- **One value per relationship.** If two components express the same
+  relationship, they use the same token. A second close-but-different value for
+  the same job is the defect this section exists to prevent.
+- **Dividers are symmetric.** Every standalone dashed divider gets
+  `--space-divider` above and below. A divider that terminates a reading column
+  lives *outside* the column's `gap-section` flow, or it inherits the 32px
+  section gap on one side and its own padding on the other.
+- **Raw steps are for one-off offsets only.** Where a value is genuinely a
+  single local adjustment, use Tailwind's own numeric utility, which resolves
+  to the same step. Do not invent a parallel naming scheme for the steps — the
+  semantic tokens are the vocabulary.
+- If a value genuinely does not fit the scale, promote it here with a reason
+  first, the same way `--size-mark` and `--press` were.
+
+
 ---
 
 ## 4. Typography
@@ -767,10 +838,15 @@ Expose semantic tokens rather than raw values:
 bg-page        bg-surface     bg-field       bg-accent-tint
 text-ink       text-ink-2     text-ink-3     text-accent-ink
 border-line    border-line-strong
-rounded-control    rounded-chip    rounded-card
+rounded-control    rounded-chip    rounded-card    rounded-hairline
 font-display   font-pixel     font-mono
 text-micro     text-small     text-body      text-lead      text-title
+gap-section    gap-block      gap-item
+py-row         py-row-compact my-divider     pt-divider     mb-item
 ```
+
+Spacing appears twice on purpose: section 3.5's numeric steps are the scale of
+record, and the semantic tokens are what components actually reach for.
 
 Do not write `bg-[#...]`, `text-[#...]`, `rounded-[...]`, `text-[17px]`, or `px-[13px]` unless the value is first promoted into this design system.
 
@@ -875,6 +951,34 @@ full opacity is easier to guarantee in one place.
 **Press scale is a token.** `--press` exists so the 0.98 active transform is
 promoted into the system per section 14, rather than written as an arbitrary
 value in the control.
+
+**The homepage has no lede paragraph.** Section 8.1 asks for one featured
+incident surface, and the incident detail template leads with its numbered
+sections. An earlier version rendered `symptom` twice in a row on `/`: once in a
+`text-lead` lede under the title, then again in `01 SYMPTOM` immediately below.
+The duplicate was on the home page only — `/q/[slug]` never had a lede. It is
+removed rather than given its own field, because a `summary` would be a second
+source for the same paragraph and would drift the moment an incident was edited
+in one place and not the other. `01 SYMPTOM` owns that text.
+
+**The incident footer sits outside `<article>`.** Section 5.5 wants symmetric
+divider spacing. As a child of the reading column it inherited the 32px
+`gap-section` above its dashed rule and 16px of its own padding below it — the
+exact mismatch section 3.5 now forbids. As a sibling it gets
+`--space-divider` on both sides, like every other divider on the site.
+
+**The two sidebar lists were never out of rhythm.** A review flagged the primary
+nav and the tag list as using different vertical rhythms. Measured, both render
+`NavItem` and come out at 36.75px with 6px/6px padding and an 8px gap — already
+identical. The tags read as secondary because of the indent and the count, not
+because their rows are shorter. A different row height there would have been an
+arbitrary mismatch, so the fix was to pin both to `--space-row-compact` and
+leave the geometry alone.
+
+**The spacing base is 2px, not 4px.** Section 3.5 records why, with the
+reference values that force it. This is the one place where the obvious
+choice — a 4px scale — would have quietly contradicted sections 2.5, 2.6, 5.4,
+7.1, 7.5, and 11.
 
 ---
 

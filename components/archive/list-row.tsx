@@ -21,7 +21,7 @@ export function ListRow({ incident }: { incident: Incident }) {
     <li>
       <Link
         href={`/q/${incident.slug}`}
-        className="flex items-center gap-2.5 rounded-chip py-1.5 underline-offset-4 transition-[opacity,text-decoration-color] duration-(--dur-hover) ease-(--ease-out) hover:underline"
+        className="flex items-center gap-item rounded-chip py-row-compact underline-offset-4 transition-[opacity,text-decoration-color] duration-(--dur-hover) ease-(--ease-out) hover:underline"
       >
         {primary ? <TagMark tag={primary} /> : null}
 

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
  */
 export default function TopicsPage() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-block">
       <SectionHeader
         index="01"
         title="Topics"

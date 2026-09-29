@@ -65,7 +65,7 @@ export function CommandPalette({
       onOpenChange={setOpen}
       label="Search incidents and pages"
       className="fixed top-1/4 left-1/2 z-50 w-[min(34rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-card border border-line bg-page shadow-float"
-      overlayClassName="fixed inset-0 z-50 bg-ink/20 backdrop-blur-[2px]"
+      overlayClassName="fixed inset-0 z-50 bg-ink/20 backdrop-blur-(--blur-scrim)"
     >
       <div className="flex items-center gap-2 border-b border-line px-3">
         <Search aria-hidden className="size-4 shrink-0 text-ink-3" />

@@ -44,7 +44,7 @@ export function NavItem({
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
       aria-label={accessibleCount}
-      className={`flex items-center gap-2 rounded-chip px-2 py-1.5 text-body transition-colors duration-(--dur-hover) ease-(--ease-out) hover:bg-field ${
+      className={`flex items-center gap-item rounded-chip px-2 py-row-compact text-body transition-colors duration-(--dur-hover) ease-(--ease-out) hover:bg-field ${
         active ? "font-medium text-ink" : "text-ink-2 hover:text-ink"
       } ${className}`}
     >
@@ -62,7 +62,7 @@ export function NavItem({
 /** Mono section label — DESIGN.md section 2.2 (`font-mono text-micro tracking-wider uppercase`). */
 export function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <div className="mb-2 font-mono text-micro tracking-wider text-ink-3 uppercase">
+    <div className="mb-item font-mono text-micro tracking-wider text-ink-3 uppercase">
       {children}
     </div>
   );

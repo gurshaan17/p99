@@ -29,15 +29,14 @@ export default function StreakPage() {
 
       <div className="overflow-x-auto">
         <div
-          className="grid w-max grid-flow-col gap-1"
-          style={{ gridTemplateRows: "repeat(7, 0.625rem)" }}
+          className="grid w-max grid-flow-col grid-rows-7 gap-1"
           role="img"
           aria-label={`Contribution grid: ${diagnosedDays} days with a published incident, over the last ${streakWeeks} weeks.`}
         >
           {streakGrid.flat().map((tone, i) => (
             <span
               key={i}
-              className={`size-2.5 rounded-[1px] ${TONE[tone]}`}
+              className={`size-2.5 rounded-hairline ${TONE[tone]}`}
             />
           ))}
         </div>
@@ -45,13 +44,13 @@ export default function StreakPage() {
 
       <div className="flex items-center gap-4 font-mono text-micro text-ink-3">
         <span className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-[1px] bg-accent-ink" /> diagnosed
+          <span className="size-2.5 rounded-hairline bg-accent-ink" /> diagnosed
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-[1px] bg-line-strong" /> missed
+          <span className="size-2.5 rounded-hairline bg-line-strong" /> missed
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-[1px] ring-1 ring-line ring-inset" />{" "}
+          <span className="size-2.5 rounded-hairline ring-1 ring-line ring-inset" />{" "}
           ahead
         </span>
       </div>

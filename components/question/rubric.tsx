@@ -26,7 +26,7 @@ export function Rubric({ rubric }: { rubric: Incident["rubric"] }) {
       {rubric.map((item) => (
         <li
           key={item.text}
-          className="flex flex-col gap-1 border-b border-dashed border-line py-2.5 last:border-0 sm:flex-row sm:items-baseline sm:gap-3"
+          className="flex flex-col gap-1 border-b border-dashed border-line py-row last:border-0 sm:flex-row sm:items-baseline sm:gap-item"
         >
           <span className="w-24 shrink-0 font-mono text-micro tracking-wider text-ink-3 uppercase">
             {DIM_LABEL[item.dim]}

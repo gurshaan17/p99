@@ -44,45 +44,54 @@ export default async function IncidentPage({
   if (!incident) notFound();
 
   return (
-    <article className="flex flex-col gap-8">
-      <header className="flex flex-col gap-3">
-        <span className="flex flex-wrap items-center gap-2 font-mono text-micro tracking-wider text-ink-3 uppercase">
-          <time dateTime={incident.publishedAt} className="tabular-nums">
-            {incident.publishedAt}
-          </time>
-          <span aria-hidden>&middot;</span>
-          {incident.tags.map((tag) => (
-            <TagBadge key={tag} tag={tag} />
-          ))}
-          <DifficultyBadge level={incident.difficulty} />
-        </span>
-        <h1 className="font-display text-title font-medium text-ink text-balance">
-          {incident.title}
-        </h1>
-      </header>
+    <div className="flex flex-col">
+      <article className="flex flex-col gap-section">
+        <header className="flex flex-col gap-item">
+          <span className="flex flex-wrap items-center gap-item font-mono text-micro tracking-wider text-ink-3 uppercase">
+            <time dateTime={incident.publishedAt} className="tabular-nums">
+              {incident.publishedAt}
+            </time>
+            <span aria-hidden>&middot;</span>
+            {incident.tags.map((tag) => (
+              <TagBadge key={tag} tag={tag} />
+            ))}
+            <DifficultyBadge level={incident.difficulty} />
+          </span>
+          <h1 className="font-display text-title font-medium text-ink text-balance">
+            {incident.title}
+          </h1>
+        </header>
 
-      <Symptom incident={incident} />
-      <Constraints items={incident.constraints} />
-      <Evidence items={incident.evidence} />
+        <Symptom incident={incident} />
+        <Constraints items={incident.constraints} />
+        <Evidence items={incident.evidence} />
 
-      <Section index="→" label="The question">
-        <Question text={incident.question} />
-      </Section>
+        <Section index="→" label="The question">
+          <Question text={incident.question} />
+        </Section>
 
-      <Picks picks={incident.picks} />
+        <Picks picks={incident.picks} />
 
-      <div className="h-px bg-line" />
+        <div className="h-px bg-line" />
 
-      <Diagnosis text={incident.diagnosis} />
-      <Fix text={incident.fix} />
+        <Diagnosis text={incident.diagnosis} />
+        <Fix text={incident.fix} />
 
-      <Section index="06" label="Rubric">
-        <Rubric rubric={incident.rubric} />
-      </Section>
+        <Section index="06" label="Rubric">
+          <Rubric rubric={incident.rubric} />
+        </Section>
+      </article>
 
-      <footer className="border-t border-dashed border-line pt-4">
+      {/*
+        The footer sits outside the article so its dashed divider carries the same
+        symmetric `--space-divider` above and below as every other page divider.
+        Inside the article it would have inherited the 32px section gap on one side
+        and 16px of its own padding on the other, which is the exact mismatch the
+        spacing audit was asked to remove.
+      */}
+      <footer className="mt-divider border-t border-dashed border-line pt-divider">
         <GhostLink href="/archive">Back to the archive</GhostLink>
       </footer>
-    </article>
+    </div>
   );
 }

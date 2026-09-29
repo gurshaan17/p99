@@ -18,7 +18,7 @@ export function Picks({ picks }: { picks: Incident["picks"] }) {
   if (picks.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-block">
       {picks.map((pick, i) => (
         <Pick key={pick.id} pick={pick} index={i + 1} />
       ))}
@@ -40,8 +40,8 @@ function Pick({
     pick.options.find((o) => o.id === pick.answer)?.label ?? pick.answer;
 
   return (
-    <fieldset className="flex flex-col gap-2 border-0 p-0">
-      <legend className="mb-2 flex items-baseline gap-2.5 font-mono text-micro tracking-wider text-ink-3 uppercase">
+    <fieldset className="flex flex-col gap-item border-0 p-0">
+      <legend className="mb-item flex items-baseline gap-item font-mono text-micro tracking-wider text-ink-3 uppercase">
         <span className="tabular-nums">{String(index).padStart(2, "0")}</span>
         {pick.prompt}
       </legend>
@@ -53,7 +53,7 @@ function Pick({
           return (
             <label
               key={option.id}
-              className={`flex cursor-pointer items-start gap-2.5 border-b border-dashed border-line py-2 transition-colors duration-(--dur-hover) ease-(--ease-out) ${
+              className={`flex cursor-pointer items-start gap-item border-b border-dashed border-line py-row transition-colors duration-(--dur-hover) ease-(--ease-out) ${
                 checked && isAnswer ? "text-ink" : ""
               } ${checked && selected && !isAnswer ? "text-ink-3 line-through" : ""} hover:text-ink`}
             >
@@ -72,7 +72,7 @@ function Pick({
         })}
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-item">
         {checked ? (
           <p
             className={`text-body text-pretty ${

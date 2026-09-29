@@ -22,19 +22,27 @@ export function Sidebar() {
     <aside
       className="hidden lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:overflow-y-auto lg:border-r lg:border-dashed lg:border-line lg:px-(--pad-x) lg:pt-(--sidebar-pad-top)"
     >
-      <Mark className="size-25 shrink-0 text-ink" />
+      <div className="flex flex-col gap-block">
+        <Mark className="size-25 shrink-0 text-ink" />
 
-      <div className="mt-5 font-pixel text-lead tracking-tight text-ink">
-        p99
+        <div className="font-pixel text-lead tracking-tight text-ink">p99</div>
+
+        <p className="max-w-(--measure-intro) text-body leading-relaxed text-ink">
+          One production incident a day. Diagnose the system, not the algorithm.
+        </p>
       </div>
 
-      <p className="mt-2 max-w-(--measure-intro) text-body leading-relaxed text-ink">
-        One production incident a day. Diagnose the system, not the algorithm.
-      </p>
-
-      <div className="my-5 border-t border-dashed border-line" />
+      <div className="my-divider border-t border-dashed border-line" />
 
       <SectionLabel>Navigation</SectionLabel>
+      {/*
+        Primary nav and the tag list below share one row rhythm, deliberately and
+        exactly — both render `NavItem`, so both come out at 36.8px with 6px/6px
+        padding and an 8px gap. The tags read as secondary because of the indent
+        and the count, not because their rows are shorter; a different row height
+        here would be an arbitrary mismatch, not a size step. (DESIGN.md 3.5
+        `--space-item`, 7.1 nav rows.)
+      */}
       <nav aria-label="Main" className="flex flex-col">
         {nav.map((item) => (
           <NavItem
@@ -47,7 +55,7 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="my-5 border-t border-dashed border-line" />
+      <div className="my-divider border-t border-dashed border-line" />
       <SectionLabel>Sections</SectionLabel>
       <nav aria-label="Tags" className="flex flex-col">
         {tagNav.map((item) => (
