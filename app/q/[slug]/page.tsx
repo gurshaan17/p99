@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getIncident, incidents, topicMeta } from "@/lib/incidents";
+import { ALTERNATE_TYPES } from "@/lib/metadata";
 import {
   Constraints,
   Evidence,
@@ -30,8 +31,12 @@ export async function generateMetadata({
   const incident = getIncident(slug);
   if (!incident) return {};
   return {
-    title: `${incident.title} — p99`,
+    // No brand suffix: the layout's `title.template` is the only place it is
+    // written, and hardcoding it here as well meant an incident title was the
+    // one page title still carrying its own copy.
+    title: incident.title,
     description: incident.symptom,
+    alternates: { canonical: `/q/${slug}`, types: ALTERNATE_TYPES },
   };
 }
 

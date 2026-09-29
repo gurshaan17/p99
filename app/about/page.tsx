@@ -61,6 +61,19 @@ export default function AboutPage() {
           storage and needs no receiving address.
         */}
         <SubscribeForm />
+        {/*
+          "Coming soon" is about delivery, not about the form. Capture really
+          works — it writes to Redis, and a visitor's address really is stored — so
+          the honest thing is to say what has not happened yet, which is the send.
+          Disabling the form or hiding the input would tell a reader the signup
+          does not work when it does, and would throw away a list that is being
+          collected for free. The success line in the form says the same thing
+          after the click; this says it before it.
+        */}
+        <p className="text-small text-ink-3">
+          Coming soon: the daily send itself. Sign up above and your address is
+          collected now, so it goes out the day there is a send worth mailing.
+        </p>
       </section>
 
       <section

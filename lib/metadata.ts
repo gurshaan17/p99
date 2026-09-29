@@ -40,8 +40,9 @@ export const OPEN_GRAPH = {
  * that renders nowhere is not a link. This is the kind of thing that reads as
  * working, because the declaration is sitting right there in the layout.
  *
- * The layout still declares it, for the routes that set no `alternates` of their
- * own: `/q/[slug]` and the 404.
+ * The layout still declares it, and now the 404 is the only route relying on that
+ * copy — every page, incident pages included, sets its own `alternates` and has to
+ * spread this by hand.
  */
 export const ALTERNATE_TYPES = {
   "application/rss+xml": "/rss.xml",

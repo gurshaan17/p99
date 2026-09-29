@@ -100,6 +100,18 @@ export function Sidebar() {
           >
             Info
           </a>
+          {/*
+            A real link rather than a label. The file exists and is served from
+            the same `ORIGIN` as everything else, and it is a plain-text route a
+            reader can open — the same reason Newsletter and Info are links here
+            rather than dead headings.
+          */}
+          <a
+            href="/llms.txt"
+            className="decoration-transparent underline-offset-4 hover:decoration-current hover:text-ink hover:underline"
+          >
+            llms.txt
+          </a>
         </div>
       </div>
     </aside>
