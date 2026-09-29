@@ -3,7 +3,7 @@ import { ThemeProvider } from "next-themes";
 import { Analytics } from "@vercel/analytics/next";
 import { bodySans, display, mono, pixel } from "./fonts";
 import { Frame } from "@/components/shell/frame";
-import { OPEN_GRAPH, TWITTER } from "@/lib/metadata";
+import { ALTERNATE_TYPES, OPEN_GRAPH, TWITTER } from "@/lib/metadata";
 import { ORIGIN } from "@/lib/origin";
 import { site } from "@/lib/site";
 import { Sidebar } from "@/components/shell/sidebar";
@@ -27,8 +27,22 @@ export const metadata: Metadata = {
   // Autodiscovery, so a reader can find the feed without the topbar link. The
   // `alternates` form is what Next turns into `<link rel="alternate">`; browsers
   // and feed readers both look for it before anything visible on the page.
+  //
+  // Declaring it here is not sufficient. `alternates` is replaced wholesale by any
+  // page that sets its own `canonical`, which all five do — so they spread
+  // `ALTERNATE_TYPES` as well, and the copy below is what survives on the routes
+  // that set no `alternates` at all. See `ALTERNATE_TYPES` for how that went
+  // unnoticed.
+  //
+  // `/llms.txt` rides the same mechanism, and is the one declaration here that
+  // is a convenience rather than a signal a crawler acts on: consumers find
+  // `/llms.txt` by convention, having learned the path, not by reading a
+  // `<link>`. The spec's own discovery mechanism is `rel="describedby"`, which
+  // Next's `alternates` cannot emit — advertising it as a markdown alternate is
+  // the closest honest thing available, and it is still true that the file is
+  // this site's content in markdown.
   alternates: {
-    types: { "application/rss+xml": "/rss.xml" },
+    types: ALTERNATE_TYPES,
   },
   // Deliberately no `alternates.canonical` and no `openGraph.url` here. Both are
   // inherited by every route below this layout, so a single "/" would tell every

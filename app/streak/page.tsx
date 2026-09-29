@@ -9,12 +9,12 @@ import {
 } from "@/lib/incidents";
 import { SectionHeader } from "@/components/archive/section-header";
 import { StreakRecord } from "@/components/archive/streak-record";
-import { OPEN_GRAPH } from "@/lib/metadata";
+import { ALTERNATE_TYPES, OPEN_GRAPH } from "@/lib/metadata";
 
 export const metadata: Metadata = {
   title: "Streak",
   description: "Every day you diagnosed something instead of guessing.",
-  alternates: { canonical: "/streak" },
+  alternates: { canonical: "/streak", types: ALTERNATE_TYPES },
   openGraph: { ...OPEN_GRAPH, url: "/streak" },
 };
 

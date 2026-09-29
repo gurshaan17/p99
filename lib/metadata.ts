@@ -30,6 +30,25 @@ export const OPEN_GRAPH = {
 };
 
 /**
+ * The feed and `/llms.txt`, declared once and spread by pages.
+ *
+ * The same replacement rule as `openGraph` above, and here it is not
+ * hypothetical: `alternates` is a single key, and every one of the five pages
+ * declares its own `alternates.canonical`. That replaced the layout's `types`
+ * wholesale on all of them, so the RSS autodiscovery link had never once been in
+ * the head of a page — the layout had declared it, no page kept it, and a link
+ * that renders nowhere is not a link. This is the kind of thing that reads as
+ * working, because the declaration is sitting right there in the layout.
+ *
+ * The layout still declares it, for the routes that set no `alternates` of their
+ * own: `/q/[slug]` and the 404.
+ */
+export const ALTERNATE_TYPES = {
+  "application/rss+xml": "/rss.xml",
+  "text/markdown": "/llms.txt",
+};
+
+/**
  * Declared in the layout only, and not spread by pages.
  *
  * It is safe to leave in one place precisely because no page overrides `twitter`,

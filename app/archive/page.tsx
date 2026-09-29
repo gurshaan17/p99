@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { incidents } from "@/lib/incidents";
-import { OPEN_GRAPH } from "@/lib/metadata";
+import { ALTERNATE_TYPES, OPEN_GRAPH } from "@/lib/metadata";
 import { ArchiveView } from "@/components/archive/archive-view";
 import { SectionHeader } from "@/components/archive/section-header";
 
 export const metadata: Metadata = {
   title: "Archive",
   description: "Every incident, in reverse chronological order.",
-  alternates: { canonical: "/archive" },
+  alternates: { canonical: "/archive", types: ALTERNATE_TYPES },
   openGraph: { ...OPEN_GRAPH, url: "/archive" },
 };
 

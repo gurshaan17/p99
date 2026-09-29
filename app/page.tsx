@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { recentIncidents, todaysIncident, topicMeta } from "@/lib/incidents";
-import { OPEN_GRAPH } from "@/lib/metadata";
+import { ALTERNATE_TYPES, OPEN_GRAPH } from "@/lib/metadata";
 import { ListRow } from "@/components/archive/list-row";
 import { SectionHeader } from "@/components/archive/section-header";
 import { GhostLink } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import { Reveal } from "@/components/question/reveal";
  * `/topics`, `/streak` and `/archive` are duplicates of the home page.
  */
 export const metadata: Metadata = {
-  alternates: { canonical: "/" },
+  alternates: { canonical: "/", types: ALTERNATE_TYPES },
   openGraph: { ...OPEN_GRAPH, url: "/" },
 };
 

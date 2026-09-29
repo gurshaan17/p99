@@ -1231,6 +1231,30 @@ at one picture, and which a browser picks is not worth leaving to chance. The
 than left as dead weight; the `app/` one stays, because that one is the
 convention.
 
+**`/llms.txt` is generated, and it points at the HTML pages.** A route handler
+for the same reason as `rss.xml` — the link list depends on `publishedAt <= now`,
+and a static file would keep advertising a future-dated incident. Sections are
+one per topic, in `TOPICS` order, rather than one flat list, so the sections
+partition the archive the way `/topics` does; the `Optional` heading marks the
+links skippable in a short context. The file carries the site's rule that the
+diagnosis is withheld until the reader commits, because a consumer that fetched a
+page to summarise it would otherwise hand the reader the thing they came not to
+have.
+
+The spec's two discovery mechanisms split awkwardly here, and the useful one is
+the one Next cannot emit. `rel="describedby"` is what points a consumer at the
+file; `rel="alternate" type="text/markdown"` points at markdown versions of the
+pages, and is what `alternates.types` actually produces. So the layout declares
+`/llms.txt` as a markdown alternate — honest about what the file is, but not what
+makes it get found, since consumers find `/llms.txt` by having learned the path.
+
+Two of the spec's recommendations are deliberately not followed. There are no
+`.md` versions of the linked pages, so the links point at server-rendered HTML,
+which is small enough to serve as a substitute; and the file grows by roughly 90
+bytes per incident against the spec's advice to keep it inside a context window.
+Both are fine at five incidents and are a deliberate trim decision when they are
+not, with `/archive` as the escape hatch.
+
 ---
 
 ## 16. Reference-specific corrections to the previous DESIGN.md
