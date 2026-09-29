@@ -698,9 +698,77 @@ Single-column reading area, approximately 720px maximum width. Sections, each se
 6. solution reveal
 7. self-score
 
+#### The attempt flow
+
+The last three are one sequence gated on a single act of commitment:
+
+```
+prediction form  →  lock in  →  solution reveal  →  self-check  →  score
+```
+
+- **Before lock-in**, nothing below the form is in the DOM. The diagnosis is
+  already in the page payload, so this is pacing, not a paywall — the same
+  reasoning as the home page's reveal.
+- **No feedback before lock-in.** Every option looks identical until the reader
+  commits. A pick that visibly favours one answer is not a prediction.
+- **Lock-in is irreversible.** The picks and the explanation become read-only the
+  moment it is set, because a self-score is only worth something if the answer it
+  scores was written first.
+- **The free text is optional.** Only answering no picks at all blocks the
+  button. Forcing prose to unlock the page would be a writing test dressed up as a
+  diagnostic one.
+
+#### Two scores, never merged
+
+The score card shows them separately, and they must stay separate:
+
+| | source | wording |
+|---|---|---|
+| Picks | auto-graded against `pick.answer` | "1 of 2 correct" |
+| Rubric | ticked by the reader | "2 of 4 covered" |
+
+Averaging these would lend the self-reported half a certainty it has not earned.
+The rubric is a raw count rather than a percentage: a percentage invites "67%, so
+I was mostly right?", and the honest answer is that it is a list of things a
+complete answer contains, not an exam with partial credit.
+
+Verdicts are always spelled out in words — "Correct.", "Not quite.", "Skipped.",
+"Wrong." — never carried by colour alone (section 13).
+
+#### Storage
+
+Per incident under `p99:attempt:<slug>`, with `p99:attempts:index` naming the
+submitted slugs so `/streak` need not enumerate every key on the origin.
+
+- **Saved on every keystroke and selection**, not on submit. A reader interrupted
+  mid-thought returns to their own words; the commitment is the lock-in, not the
+  typing.
+- **Client-only and untrusted.** The schema is user-writable, survives across
+  schema versions, and is occasionally corrupt. No read may throw, and every
+  field is coerced individually so a half-written record degrades to the parts
+  that survived.
+- **Not a security boundary.** The diagnosis ships in the payload regardless.
+  This is a pacing device for the reader, not access control.
+
 ### 8.3 Streak
 
 Use a compact contribution-style grid. It should feel informational rather than gamified. No confetti, fireworks, badges, or celebratory motion.
+
+Two views, and they answer different questions:
+
+- **The published grid** is site-level: which days have an incident. Derived from
+  `publishedAt`, so it is identical on the server and the client and a prerendered
+  page cannot change its own output depending on when it was built.
+- **The reader's record** is personal: current streak, longest streak, incidents
+  completed, computed from submitted attempts. Local calendar days, not UTC — "did
+  I do something today" is a question about the reader's clock, and a submission
+  at 23:30 local time is today even when it is tomorrow in UTC.
+
+A day counts once a self-check is **submitted**, not when it is locked in; locking
+in is a draft. Today counts toward the current streak, and yesterday still counts
+so an unfinished today does not read as a broken streak first thing in the
+morning. The empty state is a sentence explaining how to start, not a zeroed
+scoreboard.
 
 ### 8.4 Archive
 
@@ -979,6 +1047,36 @@ leave the geometry alone.
 reference values that force it. This is the one place where the obvious
 choice — a 4px scale — would have quietly contradicted sections 2.5, 2.6, 5.4,
 7.1, 7.5, and 11.
+
+**The rubric is now interactive, and the reason it was not has been answered.**
+The previous version rendered it as a read-only list on the grounds that "a
+self-score with no stored history teaches nothing on the second visit, and a fake
+score that resets every load is worse than no score." That reasoning holds only
+while nothing is stored. Attempts are now persisted per incident in
+`localStorage`, so the second visit shows the reader's own ticks and the score
+they produced, and the read-only rubric stays where it still earns its place: the
+home page's reveal, where there is no attempt to score.
+
+**The picks are no longer checked one at a time.** Each pick used to have its own
+`Check` button and its own immediate verdict. The flow is now a single lock-in
+across all picks plus the free text, because a per-pick verdict told the reader
+the answer to pick 1 before they had committed to pick 2 — which is the
+sequential version of the same problem the withheld diagnosis solves. The
+per-pick `Check` component is deleted, not deprecated.
+
+**No new motion token was added for the reveal.** `DiagnosisReveal` reuses the
+existing `.reveal` class — the 8px rise and fade over `--dur-ui` that section 10
+defines and that `globals.css` already guards under `prefers-reduced-motion`. A
+second keyframe for the same gesture would have been the motion equivalent of a
+second spacing scale.
+
+**The self-check indicator has no `data-touch-target`.** Section 12's global
+`pointer: coarse` rule sets both `min-height` and `min-width` to 40px, which
+would stretch the 16px checkbox to 40px square and break the density the rubric
+list is built on. The hit area is instead the surrounding `<label>` row, which is
+already 46px at every width — so the target clears the 40px minimum without the
+control growing. Worth knowing before the next small control reaches for the
+global hook.
 
 ---
 

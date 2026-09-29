@@ -6,6 +6,7 @@ import {
   totalIncidents,
 } from "@/lib/incidents";
 import { SectionHeader } from "@/components/archive/section-header";
+import { StreakRecord } from "@/components/archive/streak-record";
 
 export const metadata: Metadata = {
   title: "Streak — p99",
@@ -53,6 +54,20 @@ export default function StreakPage() {
           <span className="size-2.5 rounded-hairline ring-1 ring-line ring-inset" />{" "}
           ahead
         </span>
+      </div>
+
+      {/*
+        The reader's own record. A client island rather than a second copy of this
+        page as a client component, so `metadata` and the published-date grid above
+        stay server-rendered and the page keeps working with storage disabled.
+      */}
+      <div className="mt-divider border-t border-dashed border-line pt-divider">
+        <SectionHeader
+          index="02"
+          title="Your record"
+          description="Counted from the self-checks you have submitted in this browser."
+        />
+        <StreakRecord />
       </div>
     </div>
   );

@@ -3,15 +3,15 @@ import { notFound } from "next/navigation";
 import { getIncident, incidents } from "@/lib/incidents";
 import {
   Constraints,
-  Diagnosis,
   Evidence,
-  Fix,
   Question,
   Section,
   Symptom,
 } from "@/components/question/incident";
-import { Picks } from "@/components/question/picks";
-import { Rubric } from "@/components/question/rubric";
+import { PredictionForm } from "@/components/question/prediction-form";
+import { DiagnosisReveal } from "@/components/question/diagnosis-reveal";
+import { RubricSelfCheck } from "@/components/question/rubric-self-check";
+import { ScoreCard } from "@/components/question/score-card";
 import { TagBadge, DifficultyBadge } from "@/components/ui/badge";
 import { GhostLink } from "@/components/ui/button";
 
@@ -70,16 +70,33 @@ export default async function IncidentPage({
           <Question text={incident.question} />
         </Section>
 
-        <Picks picks={incident.picks} />
+        {/*
+          The prediction/reveal/self-score flow (DESIGN.md section 8.2). Each piece
+          subscribes to the same external attempt store rather than the page
+          holding one piece of state, so a pick answer written in the form
+          re-renders the reveal and the score without any of them knowing about
+          the others.
+
+          A returning reader with a submitted attempt lands straight here: the
+          form renders their locked answers read-only, the diagnosis is already
+          revealed, and the score card is showing. Nothing to redo.
+        */}
+        <PredictionForm incident={incident} />
 
         <div className="h-px bg-line" />
 
-        <Diagnosis text={incident.diagnosis} />
-        <Fix text={incident.fix} />
+        <DiagnosisReveal incident={incident} />
 
-        <Section index="06" label="Rubric">
-          <Rubric rubric={incident.rubric} />
-        </Section>
+        <RubricSelfCheck incident={incident} />
+
+        {/*
+          The score is a result rather than one more section of the article, so
+          it takes no index and no rule of its own — the 32px section gap above it
+          and the footer's dashed divider below it already bracket it. Giving it a
+          top border here would put 32px above the rule and 20px below, the exact
+          asymmetry the footer was moved out of the article to avoid.
+        */}
+        <ScoreCard incident={incident} />
       </article>
 
       {/*

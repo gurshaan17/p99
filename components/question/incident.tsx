@@ -73,17 +73,23 @@ export function Question({ text }: { text: string }) {
   );
 }
 
-export function Diagnosis({ text }: { text: string }) {
+/**
+ * The index defaults to the standalone sequence (04, 05) used by the homepage's
+ * `Reveal`, which renders diagnosis and fix with nothing numbered above them. The
+ * incident page inserts a prediction form between its question and the solution,
+ * so it passes its own numbers rather than leaving a gap in the run.
+ */
+export function Diagnosis({ text, index = "04" }: { text: string; index?: string }) {
   return (
-    <Section index="04" label="Diagnosis">
+    <Section index={index} label="Diagnosis">
       <Markdown>{text}</Markdown>
     </Section>
   );
 }
 
-export function Fix({ text }: { text: string }) {
+export function Fix({ text, index = "05" }: { text: string; index?: string }) {
   return (
-    <Section index="05" label="Fix">
+    <Section index={index} label="Fix">
       <Markdown>{text}</Markdown>
     </Section>
   );
