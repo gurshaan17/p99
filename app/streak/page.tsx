@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
-import { questions, streakGrid, streakWeeks } from "@/lib/questions";
+import {
+  diagnosedDays,
+  streakGrid,
+  streakWeeks,
+  totalIncidents,
+} from "@/lib/incidents";
 import { SectionHeader } from "@/components/archive/section-header";
 
 export const metadata: Metadata = {
@@ -14,14 +19,12 @@ const TONE = {
 } as const;
 
 export default function StreakPage() {
-  const completed = questions.filter((q) => q.done).length;
-
   return (
     <div className="flex flex-col gap-6">
       <SectionHeader
         index="01"
         title="Streak"
-        description={`${completed} of ${questions.length} incidents diagnosed.`}
+        description={`${diagnosedDays} of ${totalIncidents} incidents diagnosed.`}
       />
 
       <div className="overflow-x-auto">
@@ -29,7 +32,7 @@ export default function StreakPage() {
           className="grid w-max grid-flow-col gap-1"
           style={{ gridTemplateRows: "repeat(7, 0.625rem)" }}
           role="img"
-          aria-label={`Contribution grid: ${completed} days completed over the last ${streakWeeks} weeks.`}
+          aria-label={`Contribution grid: ${diagnosedDays} days with a published incident, over the last ${streakWeeks} weeks.`}
         >
           {streakGrid.flat().map((tone, i) => (
             <span

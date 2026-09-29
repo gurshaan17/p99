@@ -4,8 +4,8 @@ import { useCallback, useEffect, type Dispatch, type SetStateAction } from "reac
 import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
 import { Search } from "lucide-react";
-import { questions } from "@/lib/questions";
-import { nav, topicNav } from "@/lib/nav";
+import { incidents } from "@/lib/incidents";
+import { nav, tagNav } from "@/lib/nav";
 
 /**
  * Command palette — DESIGN.md section 7.9.
@@ -41,7 +41,8 @@ export function CommandPalette({
 
   // ⌘/Ctrl+E jumps to a random incident (section 7.1).
   const surpriseMe = useCallback(() => {
-    const pick = questions[Math.floor(Math.random() * questions.length)];
+    const pick =
+      incidents[Math.floor(Math.random() * incidents.length)];
     if (pick) router.push(`/q/${pick.slug}`);
   }, [router]);
 
@@ -70,7 +71,7 @@ export function CommandPalette({
         <Search aria-hidden className="size-4 shrink-0 text-ink-3" />
         <Command.Input
           autoFocus
-          placeholder="Search incidents, topics, pages…"
+          placeholder="Search incidents, tags, pages…"
           className="h-11 w-full bg-transparent text-body text-ink outline-none placeholder:text-ink-3"
         />
       </div>
@@ -89,22 +90,22 @@ export function CommandPalette({
         </Group>
 
         <Group heading="Incidents">
-          {questions.map((q) => (
+          {incidents.map((incident) => (
             <Row
-              key={q.slug}
-              value={`${q.title} ${q.description} ${q.topic}`}
-              onSelect={() => router.push(`/q/${q.slug}`)}
+              key={incident.slug}
+              value={`${incident.title} ${incident.symptom} ${incident.tags.join(" ")}`}
+              onSelect={() => router.push(`/q/${incident.slug}`)}
             >
               <span className="font-mono text-micro tracking-wider text-ink-3 uppercase">
-                {q.topic}
+                {incident.tags[0]}
               </span>
-              <span className="truncate">{q.title}</span>
+              <span className="truncate">{incident.title}</span>
             </Row>
           ))}
         </Group>
 
-        <Group heading="Topics">
-          {topicNav.map((t) => (
+        <Group heading="Tags">
+          {tagNav.map((t) => (
             <Row
               key={t.href}
               value={t.label}

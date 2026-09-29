@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { byDateDesc } from "@/lib/questions";
+import { incidents } from "@/lib/incidents";
 import { ArchiveView } from "@/components/archive/archive-view";
 import { SectionHeader } from "@/components/archive/section-header";
 
@@ -14,9 +14,9 @@ export default function ArchivePage() {
       <SectionHeader
         index="01"
         title="Archive"
-        description={`${byDateDesc.length} incidents, newest first.`}
+        description={`${incidents.length} incidents, newest first.`}
       />
-      <ArchiveView questions={byDateDesc} />
+      <ArchiveView incidents={incidents} />
     </div>
   );
 }

@@ -1,20 +1,23 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { bySlug, questions } from "@/lib/questions";
+import { getIncident, incidents } from "@/lib/incidents";
 import {
   Constraints,
   Diagnosis,
-  EvidenceBlocks,
+  Evidence,
   Fix,
-  Prompt,
-  Remember,
+  Question,
+  Section,
   Symptom,
 } from "@/components/question/incident";
+import { Picks } from "@/components/question/picks";
+import { Rubric } from "@/components/question/rubric";
+import { TagBadge, DifficultyBadge } from "@/components/ui/badge";
 import { GhostLink } from "@/components/ui/button";
 
 /** All incidents are known at build time, so every route is prerendered. */
 export function generateStaticParams() {
-  return questions.map((q) => ({ slug: q.slug }));
+  return incidents.map((incident) => ({ slug: incident.slug }));
 }
 
 export async function generateMetadata({
@@ -23,62 +26,59 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const q = bySlug.get(slug);
-  if (!q) return {};
-  return { title: `${q.title} — p99`, description: q.description };
+  const incident = getIncident(slug);
+  if (!incident) return {};
+  return {
+    title: `${incident.title} — p99`,
+    description: incident.symptom,
+  };
 }
 
-export default async function QuestionPage({
+export default async function IncidentPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const q = bySlug.get(slug);
-  if (!q) notFound();
+  const incident = getIncident(slug);
+  if (!incident) notFound();
 
   return (
     <article className="flex flex-col gap-8">
       <header className="flex flex-col gap-3">
-        <span className="font-mono text-micro tracking-wider text-ink-3 uppercase">
-          {q.date} &middot; {q.topic} &middot; {q.difficulty}
+        <span className="flex flex-wrap items-center gap-2 font-mono text-micro tracking-wider text-ink-3 uppercase">
+          <time dateTime={incident.publishedAt} className="tabular-nums">
+            {incident.publishedAt}
+          </time>
+          <span aria-hidden>&middot;</span>
+          {incident.tags.map((tag) => (
+            <TagBadge key={tag} tag={tag} />
+          ))}
+          <DifficultyBadge level={incident.difficulty} />
         </span>
         <h1 className="font-display text-title font-medium text-ink text-balance">
-          {q.title}
+          {incident.title}
         </h1>
       </header>
 
-      <Symptom question={q} />
-      <Constraints constraints={q.constraints} />
+      <Symptom incident={incident} />
+      <Constraints items={incident.constraints} />
+      <Evidence items={incident.evidence} />
 
-      <div className="flex flex-col gap-2">
-        <h2 className="flex items-baseline gap-2.5 font-mono text-micro tracking-wider text-ink-3 uppercase">
-          <span className="tabular-nums">02</span>
-          Evidence
-        </h2>
-        <EvidenceBlocks evidence={q.evidence} />
-      </div>
+      <Section index="→" label="The question">
+        <Question text={incident.question} />
+      </Section>
 
-      <div className="flex flex-col gap-2">
-        <h2 className="flex items-baseline gap-2.5 font-mono text-micro tracking-wider text-ink-3 uppercase">
-          <span className="tabular-nums">→</span>
-          The question
-        </h2>
-        <Prompt text={q.task} />
-      </div>
+      <Picks picks={incident.picks} />
 
       <div className="h-px bg-line" />
 
-      <Diagnosis text={q.diagnosis} />
-      <Fix text={q.fix} />
+      <Diagnosis text={incident.diagnosis} />
+      <Fix text={incident.fix} />
 
-      <div className="flex flex-col gap-2">
-        <h2 className="flex items-baseline gap-2.5 font-mono text-micro tracking-wider text-ink-3 uppercase">
-          <span className="tabular-nums">05</span>
-          Takeaways
-        </h2>
-        <Remember items={q.remember} />
-      </div>
+      <Section index="06" label="Rubric">
+        <Rubric rubric={incident.rubric} />
+      </Section>
 
       <footer className="border-t border-dashed border-line pt-4">
         <GhostLink href="/archive">Back to the archive</GhostLink>

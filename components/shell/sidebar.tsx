@@ -1,6 +1,6 @@
 "use client";
 
-import { nav, topicNav } from "@/lib/nav";
+import { nav, tagNav } from "@/lib/nav";
 import { Mark } from "./mark";
 import { NavItem, SectionLabel } from "@/components/ui/nav-item";
 
@@ -49,8 +49,8 @@ export function Sidebar() {
 
       <div className="my-5 border-t border-dashed border-line" />
       <SectionLabel>Sections</SectionLabel>
-      <nav aria-label="Topics" className="flex flex-col">
-        {topicNav.map((item) => (
+      <nav aria-label="Tags" className="flex flex-col">
+        {tagNav.map((item) => (
           <NavItem
             key={item.href}
             href={item.href}

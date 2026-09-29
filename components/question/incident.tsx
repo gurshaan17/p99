@@ -1,61 +1,67 @@
-import type { Evidence, Question } from "@/lib/questions";
+import type { Incident } from "@/lib/incidents";
+import { Markdown } from "./markdown";
 
 /**
- * Incident body — DESIGN.md section 7.10.
+ * Incident body — DESIGN.md sections 7.10, 8.2, 9.
  *
- * Faint, quiet presentation for long prose; the prompt is the only thing on the
- * page allowed to lead. Evidence blocks get a mono filename or language label
- * flush right in the top-right corner (section 9), and code never wraps.
+ * Faint, quiet presentation for long prose; the question is the only thing on the
+ * page allowed to lead.
+ *
+ * `constraints` and `evidence` are plain prose strings in this schema, not
+ * key/value pairs and not code, so both render as indexed lists rather than the
+ * spec table and labelled code panels the previous shape called for. Section 9's
+ * `.prose-site` styles cover the markdown bodies.
  */
-export function Symptom({ question: q }: { question: Question }) {
+
+export function Symptom({ incident }: { incident: Incident }) {
   return (
-    <section aria-labelledby="h-symptom">
-      <Eyebrow id="h-symptom" index="01" label="Symptom" />
-      <p className="text-body text-ink-2 text-pretty">{q.symptom}</p>
-    </section>
+    <Section index="01" label="Symptom">
+      <p className="text-body text-ink-2 text-pretty">{incident.symptom}</p>
+    </Section>
   );
 }
 
-/** Key/value constraint grid — reads as a spec table, not a chart. */
-export function Constraints({ constraints }: { constraints: Question["constraints"] }) {
+export function Constraints({ items }: { items: string[] }) {
   return (
-    <dl className="grid grid-cols-1 gap-px overflow-hidden rounded-control border border-line bg-line sm:grid-cols-2">
-      {constraints.map((c) => (
-        <div key={c.key} className="bg-page px-3 py-2">
-          <dt className="font-mono text-micro tracking-wider text-ink-3 uppercase">
-            {c.key}
-          </dt>
-          <dd className="mt-0.5 text-body text-ink tabular-nums">{c.value}</dd>
-        </div>
-      ))}
-    </dl>
+    <Section index="02" label="Constraints">
+      <ul className="flex flex-col">
+        {items.map((item) => (
+          <li
+            key={item}
+            className="border-b border-dashed border-line py-2.5 text-body text-ink-2 text-pretty last:border-0"
+          >
+            {item}
+          </li>
+        ))}
+      </ul>
+    </Section>
   );
 }
 
-export function EvidenceBlocks({ evidence }: { evidence: Evidence[] }) {
+export function Evidence({ items }: { items: string[] }) {
   return (
-    <div className="flex flex-col gap-3">
-      {evidence.map((e, i) => (
-        <figure
-          key={i}
-          className="relative overflow-hidden rounded-control border border-line bg-surface"
-        >
-          <figcaption className="absolute top-2 right-3 font-mono text-micro tracking-wider text-ink-3 uppercase select-none">
-            {"language" in e ? e.language : e.label}
-          </figcaption>
-          <pre className="overflow-x-auto p-3 pt-8 font-mono text-small leading-relaxed text-ink-2">
-            <code>{e.body}</code>
-          </pre>
-        </figure>
-      ))}
-    </div>
+    <Section index="03" label="Evidence">
+      <ul className="flex flex-col">
+        {items.map((item) => (
+          <li
+            key={item}
+            className="flex gap-2.5 border-b border-dashed border-line py-2.5 text-body text-ink-2 text-pretty last:border-0"
+          >
+            <span aria-hidden className="font-mono text-small text-ink-3">
+              →
+            </span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </Section>
   );
 }
 
 /** The one thing allowed to lead — the question being asked. */
-export function Prompt({ text }: { text: string }) {
+export function Question({ text }: { text: string }) {
   return (
-    <p className="font-display text-lead font-medium text-ink text-pretty">
+    <p className="font-display text-lead font-medium text-ink text-balance">
       {text}
     </p>
   );
@@ -63,54 +69,43 @@ export function Prompt({ text }: { text: string }) {
 
 export function Diagnosis({ text }: { text: string }) {
   return (
-    <section aria-labelledby="h-diagnosis">
-      <Eyebrow id="h-diagnosis" index="03" label="Diagnosis" />
-      <p className="text-body text-ink-2 text-pretty">{text}</p>
-    </section>
+    <Section index="04" label="Diagnosis">
+      <Markdown>{text}</Markdown>
+    </Section>
   );
 }
 
 export function Fix({ text }: { text: string }) {
   return (
-    <section aria-labelledby="h-fix">
-      <Eyebrow id="h-fix" index="04" label="Fix" />
-      <p className="text-body text-ink-2 text-pretty">{text}</p>
-    </section>
+    <Section index="05" label="Fix">
+      <Markdown>{text}</Markdown>
+    </Section>
   );
 }
 
-/** Faint, hairline-separated takeaways (section 7.10). */
-export function Remember({ items }: { items: string[] }) {
-  return (
-    <ul className="flex flex-col">
-      {items.map((item) => (
-        <li
-          key={item}
-          className="border-b border-dashed border-line py-2.5 text-body text-ink-2 text-pretty last:border-0"
-        >
-          {item}
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function Eyebrow({
-  id,
+/** Section wrapper: mono index + uppercase label, used by every block above. */
+export function Section({
   index,
   label,
+  children,
 }: {
-  id: string;
   index: string;
   label: string;
+  children: React.ReactNode;
 }) {
+  // Ids must not contain whitespace, so "The question" cannot pass through
+  // lowercasing alone — the sidebar and topics page link to these by fragment.
+  const id = `h-${label.toLowerCase().replace(/\s+/g, "-")}`;
   return (
-    <h2
-      id={id}
-      className="mb-2 flex items-baseline gap-2.5 font-mono text-micro tracking-wider text-ink-3 uppercase"
-    >
-      <span className="tabular-nums">{index}</span>
-      {label}
-    </h2>
+    <section aria-labelledby={id} className="flex flex-col">
+      <h2
+        id={id}
+        className="mb-2 flex items-baseline gap-2.5 font-mono text-micro tracking-wider text-ink-3 uppercase"
+      >
+        <span className="tabular-nums">{index}</span>
+        {label}
+      </h2>
+      {children}
+    </section>
   );
 }

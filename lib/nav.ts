@@ -1,5 +1,5 @@
 import { Archive, Flame, Info, type LucideIcon } from "lucide-react";
-import { topicCounts } from "@/lib/questions";
+import { tagCounts } from "@/lib/incidents";
 
 export type NavItemSpec = {
   href: string;
@@ -8,7 +8,7 @@ export type NavItemSpec = {
   count?: number;
 };
 
-export type TopicNavSpec = {
+export type TagNavSpec = {
   href: string;
   label: string;
   count: number;
@@ -28,9 +28,16 @@ export const nav: NavItemSpec[] = [
   { href: "/about", label: "About" },
 ];
 
-/** Topic filters shown under SECTIONS. Derived from real content, never hand-listed. */
-export const topicNav: TopicNavSpec[] = topicCounts.map(({ topic, count }) => ({
-  href: `/topics#${topic.toLowerCase()}`,
-  label: topic,
+/**
+ * Tag filters shown under SECTIONS. Derived from real content via `tagCounts`,
+ * never hand-listed, so a new incident's tags appear here without an edit.
+ *
+ * An incident can sit under more than one tag, so the per-tag counts sum to more
+ * than the incident total. That is intended — it is a cross-index, not a
+ * partition.
+ */
+export const tagNav: TagNavSpec[] = tagCounts.map(({ tag, count }) => ({
+  href: `/topics#${tag}`,
+  label: tag,
   count,
 }));

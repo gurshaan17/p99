@@ -45,6 +45,8 @@
   --radius-chip: 10px;
   --radius-card: 14px;
   --radius-full: 9999px;
+  /* 18px tag/grid mark (section 11) */
+  --size-mark: 1.125rem;
 
   /* Motion */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -152,6 +154,9 @@
   --radius-control: var(--radius-control);
   --radius-chip: var(--radius-chip);
   --radius-card: var(--radius-card);
+
+  /* Sizes */
+  --size-mark: var(--size-mark);
 
   /* Shadows */
   --shadow-float: var(--shadow-float);

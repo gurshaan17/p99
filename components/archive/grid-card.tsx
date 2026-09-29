@@ -1,5 +1,6 @@
 import Link from "next/link";
-import type { Question } from "@/lib/questions";
+import type { Incident } from "@/lib/incidents";
+import { TagMark } from "@/components/ui/badge";
 
 /**
  * Grid card — DESIGN.md section 7.4.
@@ -8,45 +9,45 @@ import type { Question } from "@/lib/questions";
  * adds a subtle shadow; nothing moves (section 7.4, section 9).
  *
  * The preview panel stands in for the reference's generated abstract diagram
- * (section 7.4). It renders the question's own latency profile so the panel
- * carries information rather than decoration (section 11).
+ * (section 7.4) and shows the incident's actual question — what you would be
+ * asked if you opened it. The previous version drew a hardcoded bar chart keyed
+ * off difficulty, which was a picture of nothing (section 11: a panel must carry
+ * information, not decoration).
  */
-export function GridCard({ question: q }: { question: Question }) {
+export function GridCard({ incident }: { incident: Incident }) {
+  const [primary, ...rest] = incident.tags;
+
   return (
     <Link
-      href={`/q/${q.slug}`}
+      href={`/q/${incident.slug}`}
       className="group block rounded-card border border-line bg-page p-2 transition-[border-color,box-shadow] duration-(--dur-hover) ease-(--ease-out) hover:border-line-strong hover:shadow-card"
     >
-      <div className="flex aspect-video items-end gap-1 overflow-hidden rounded-control bg-field p-3">
-        {PROFILE[q.difficulty].map((h, i) => (
-          <span
-            key={i}
-            style={{ height: `${h}%` }}
-            className="flex-1 bg-ink-3/25 last:bg-accent-ink"
-          />
-        ))}
-      </div>
-
-      <div className="px-1 pt-3 pb-1">
-        <div className="text-body font-medium text-ink">{q.title}</div>
-        <p className="mt-1 line-clamp-2 text-small text-ink-3">
-          {q.description}
+      <div className="flex aspect-video overflow-hidden rounded-control bg-field p-3">
+        <p className="line-clamp-4 text-small text-ink-3 text-pretty">
+          {incident.question}
         </p>
       </div>
 
-      <div className="flex items-center justify-between px-1 pt-2 font-mono text-micro text-ink-3">
-        <span className="uppercase tracking-wider">{q.topic}</span>
-        <time dateTime={q.date} className="tabular-nums">
-          {q.date}
+      <div className="px-1 pt-3 pb-1">
+        <div className="text-body font-medium text-ink text-pretty">
+          {incident.title}
+        </div>
+        <p className="mt-1 line-clamp-2 text-small text-ink-3 text-pretty">
+          {incident.symptom}
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between gap-2 px-1 pt-2 font-mono text-micro text-ink-3">
+        <span className="flex min-w-0 items-center gap-1.5 uppercase tracking-wider">
+          {primary ? <TagMark tag={primary} /> : null}
+          <span className="truncate">
+            {rest.length > 0 ? `${primary} · ${rest.join(" · ")}` : primary}
+          </span>
+        </span>
+        <time dateTime={incident.publishedAt} className="shrink-0 tabular-nums">
+          {incident.publishedAt.slice(5).replace("-", "/")}
         </time>
       </div>
     </Link>
   );
 }
-
-/** Latency profile silhouettes, one per difficulty. */
-const PROFILE: Record<Question["difficulty"], number[]> = {
-  easy: [40, 38, 42, 39, 44, 41, 46, 43, 70, 88],
-  medium: [44, 40, 48, 42, 52, 45, 58, 50, 76, 94],
-  hard: [50, 46, 55, 48, 62, 54, 70, 60, 84, 98],
-};
