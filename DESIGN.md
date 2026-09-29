@@ -619,6 +619,9 @@ gap: 6px;
 - Hover: background `field`, color `ink`
 - Active: `scale: 0.98`
 - Focus: visible 2px outline/ring
+- Cursor: `pointer`
+
+**Cursor is explicit, not inherited.** A control that renders a `<button>` must set `cursor: pointer` itself. Tailwind's preflight leaves `button` on the UA default arrow and only `a[href]` picks up a pointer from the UA stylesheet, so without the class a button control and a link control sit next to each other in the same bar with different cursors for the same action. `disabled:cursor-default` so a control that has gone dead stops advertising that it can be pressed.
 
 **Resolution in this repo** (`components/ui/control.tsx`): the focus ring is global rather than per-component, so nothing can drift:
 

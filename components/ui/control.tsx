@@ -17,6 +17,12 @@ import {
  * Renders a `<button>` by default. Pass `asChild` with a single `<Link>` or
  * `<a>` child to get a link that looks like a control, rather than a button
  * that navigates — the markup should match the behaviour.
+ *
+ * `cursor-pointer` is not redundant. Tailwind v4's preflight does not set a
+ * cursor on `button`, and only `a[href]` gets a pointer from the UA stylesheet,
+ * so a `button`-rendering control is the one case that otherwise keeps the
+ * default arrow and reads as unclickable while doing exactly what the `<a>`
+ * controls next to it do.
  */
 export function Control({
   className = "",
@@ -28,7 +34,7 @@ export function Control({
   asChild?: boolean;
   ref?: Ref<HTMLButtonElement>;
 }) {
-  const classes = `inline-flex h-8 items-center gap-1.5 rounded-control px-1.5 text-ink-3 transition-colors duration-(--dur-hover) ease-(--ease-out) hover:bg-field hover:text-ink active:scale-(--press) ${className}`;
+  const classes = `inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-control px-1.5 text-ink-3 transition-colors duration-(--dur-hover) ease-(--ease-out) hover:bg-field hover:text-ink active:scale-(--press) disabled:cursor-default disabled:opacity-60 ${className}`;
 
   if (asChild) {
     return cloneChild(children, classes);
