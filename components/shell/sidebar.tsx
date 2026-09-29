@@ -1,6 +1,6 @@
 "use client";
 
-import { nav, tagNav } from "@/lib/nav";
+import { nav, topicNav } from "@/lib/nav";
 import { Mark } from "./mark";
 import { NavItem, SectionLabel } from "@/components/ui/nav-item";
 
@@ -36,12 +36,12 @@ export function Sidebar() {
 
       <SectionLabel>Navigation</SectionLabel>
       {/*
-        Primary nav and the tag list below share one row rhythm, deliberately and
-        exactly — both render `NavItem`, so both come out at 36.8px with 6px/6px
-        padding and an 8px gap. The tags read as secondary because of the indent
-        and the count, not because their rows are shorter; a different row height
-        here would be an arbitrary mismatch, not a size step. (DESIGN.md 3.5
-        `--space-item`, 7.1 nav rows.)
+        Primary nav and the topic list below share one row rhythm, deliberately
+        and exactly — both render `NavItem`, so both come out at 36.8px with
+        6px/6px padding and an 8px gap. The topics read as secondary because of
+        the indent and the count, not because their rows are shorter; a
+        different row height here would be an arbitrary mismatch, not a size
+        step. (DESIGN.md 3.5 `--space-item`, 7.1 nav rows.)
       */}
       <nav aria-label="Main" className="flex flex-col">
         {nav.map((item) => (
@@ -56,9 +56,9 @@ export function Sidebar() {
       </nav>
 
       <div className="my-divider border-t border-dashed border-line" />
-      <SectionLabel>Sections</SectionLabel>
-      <nav aria-label="Tags" className="flex flex-col">
-        {tagNav.map((item) => (
+      <SectionLabel>Topics</SectionLabel>
+      <nav aria-label="Topics" className="flex flex-col">
+        {topicNav.map((item) => (
           <NavItem
             key={item.href}
             href={item.href}

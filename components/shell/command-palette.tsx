@@ -4,8 +4,8 @@ import { useCallback, useEffect, type Dispatch, type SetStateAction } from "reac
 import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
 import { Search } from "lucide-react";
-import { incidents } from "@/lib/incidents";
-import { nav, tagNav } from "@/lib/nav";
+import { incidents, topicMeta } from "@/lib/incidents";
+import { nav, topicNav } from "@/lib/nav";
 
 /**
  * Command palette — DESIGN.md section 7.9.
@@ -71,7 +71,7 @@ export function CommandPalette({
         <Search aria-hidden className="size-4 shrink-0 text-ink-3" />
         <Command.Input
           autoFocus
-          placeholder="Search incidents, tags, pages…"
+          placeholder="Search incidents, topics, pages…"
           className="h-11 w-full bg-transparent text-body text-ink outline-none placeholder:text-ink-3"
         />
       </div>
@@ -93,19 +93,19 @@ export function CommandPalette({
           {incidents.map((incident) => (
             <Row
               key={incident.slug}
-              value={`${incident.title} ${incident.symptom} ${incident.tags.join(" ")}`}
+              value={`${incident.title} ${incident.symptom} ${incident.topic} ${incident.tags.join(" ")}`}
               onSelect={() => router.push(`/q/${incident.slug}`)}
             >
               <span className="font-mono text-micro tracking-wider text-ink-3 uppercase">
-                {incident.tags[0]}
+                {topicMeta(incident.topic).label}
               </span>
               <span className="truncate">{incident.title}</span>
             </Row>
           ))}
         </Group>
 
-        <Group heading="Tags">
-          {tagNav.map((t) => (
+        <Group heading="Topics">
+          {topicNav.map((t) => (
             <Row
               key={t.href}
               value={t.label}

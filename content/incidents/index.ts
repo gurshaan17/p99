@@ -6,6 +6,7 @@ import { autovacuumStarvationLongTransaction } from "./011-autovacuum-starvation
 import type { Incident } from "./types";
 
 export type { Incident };
+export { TOPICS, type Topic } from "./types";
 
 /**
  * Every incident, newest first.

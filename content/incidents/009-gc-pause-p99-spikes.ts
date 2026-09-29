@@ -5,6 +5,7 @@ export const gcPauseP99Spikes = {
   title: "CPU graph says 45%. p99 latency says otherwise.",
   publishedAt: "2026-09-27",
   difficulty: "hard",
+  topic: "runtime",
   tags: ["jvm", "garbage-collection", "latency"],
   symptom:
     "A Java service on G1GC shows moderate average CPU (40-50%) — nothing alarming on the dashboard. But p99 latency has recurring spikes of 200-500ms every few seconds, invisible in the average, and users are noticing timeouts.",

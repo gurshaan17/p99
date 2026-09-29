@@ -1,4 +1,4 @@
-import { recentIncidents, todaysIncident } from "@/lib/incidents";
+import { recentIncidents, todaysIncident, topicMeta } from "@/lib/incidents";
 import { ListRow } from "@/components/archive/list-row";
 import { SectionHeader } from "@/components/archive/section-header";
 import { GhostLink } from "@/components/ui/button";
@@ -31,6 +31,7 @@ export default function TodayPage() {
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-3">
         <span className="font-mono text-micro tracking-wider text-ink-3 uppercase">
+          {topicMeta(incident.topic).label} &middot;{" "}
           {incident.publishedAt} &middot; {incident.tags.join(" / ")} &middot;{" "}
           {incident.difficulty}
         </span>

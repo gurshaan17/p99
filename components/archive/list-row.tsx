@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Incident } from "@/lib/incidents";
+import { topicMeta, type Incident } from "@/lib/incidents";
 import { TagMark, DifficultyBadge } from "@/components/ui/badge";
 
 /**
@@ -11,11 +11,14 @@ import { TagMark, DifficultyBadge } from "@/components/ui/badge";
  * `globals.css` rather than in these class names, because expressing
  * "fade the siblings of the hovered row" as utility classes is unreadable.
  *
- * The schema has no `description` field, so the row's secondary slot carries the
- * first tag instead. A row with a title and nothing else reads as broken.
+ * The row mark is the incident's topic, not its first tag. The topic is one of
+ * four, so the mark is scannable down a column; the tags then fill the secondary
+ * slot, where they answer "which of these do I care about" without becoming
+ * navigation. The schema has no `description` field, and a row with a title and
+ * nothing else reads as broken.
  */
 export function ListRow({ incident }: { incident: Incident }) {
-  const [primary, ...rest] = incident.tags;
+  const topic = topicMeta(incident.topic);
 
   return (
     <li>
@@ -23,19 +26,19 @@ export function ListRow({ incident }: { incident: Incident }) {
         href={`/q/${incident.slug}`}
         className="flex items-center gap-item rounded-chip py-row-compact underline-offset-4 transition-[opacity,text-decoration-color] duration-(--dur-hover) ease-(--ease-out) hover:underline"
       >
-        {primary ? <TagMark tag={primary} /> : null}
+        <TagMark tag={topic.label} />
 
         <span className="truncate text-body font-medium text-ink">
           {incident.title}
         </span>
 
-        {rest.length > 0 ? (
+        {incident.tags.length > 0 ? (
           <>
             <span aria-hidden className="mx-1 shrink-0 text-ink-3">
               &middot;
             </span>
             <span className="min-w-0 flex-1 truncate font-mono text-micro tracking-wider text-ink-3 uppercase">
-              {rest.join(" · ")}
+              {incident.tags.join(" · ")}
             </span>
           </>
         ) : (

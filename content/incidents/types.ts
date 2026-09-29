@@ -1,8 +1,45 @@
+/**
+ * The broad areas an incident is filed under, in display order. Curated rather
+ * than derived: `tags` are whatever an incident happens to mention, and grouping
+ * by those produced a dozen one-post sections. A topic is the single shelf the
+ * incident sits on.
+ *
+ * The literal union is the enforcement point — a typo in an incident file is a
+ * type error, not a new section.
+ */
+export const TOPICS = [
+  {
+    id: "caching",
+    label: "Caching",
+    description: "Expiry, stampedes, and what the cache was doing while it lied.",
+  },
+  {
+    id: "databases",
+    label: "Databases",
+    description: "Storage engines holding state: bloat, locks, pool saturation.",
+  },
+  {
+    id: "runtime",
+    label: "Runtime",
+    description: "The process itself: memory, GC, and the pauses inside it.",
+  },
+  {
+    id: "platform",
+    label: "Platform",
+    description: "Orchestration, probes, and the failure of a control plane.",
+  },
+] as const;
+
+export type Topic = (typeof TOPICS)[number]["id"];
+
 export interface Incident {
   slug: string;
   title: string;
   publishedAt: string; // ISO date
   difficulty: "easy" | "medium" | "hard";
+  /** The one broad area this incident is filed under. Sections group by this. */
+  topic: Topic;
+  /** Fine-grained. Filtering and badges only — never a section. */
   tags: string[];
   symptom: string;
   constraints: string[];

@@ -5,6 +5,7 @@ export const noisyNeighborPoolStarvation = {
   title: "p50 is fine. p99 is 6 seconds. Every endpoint, not just the slow one.",
   publishedAt: "2026-09-28",
   difficulty: "medium",
+  topic: "databases",
   tags: ["postgres", "connection-pool", "multi-tenant"],
   symptom:
     "A multi-tenant API shares one Postgres connection pool (size 20) across all endpoints. Most queries run in under 10ms. But under load, p99 latency across EVERY endpoint — including trivial ones — balloons to seconds, while Postgres CPU stays low.",

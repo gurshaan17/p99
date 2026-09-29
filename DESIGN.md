@@ -463,7 +463,7 @@ Internal order:
 4. dashed divider
 5. `NAVIGATION` label
 6. nav items
-7. optional `SECTIONS`/topic filters
+7. optional `TOPICS` section links
 8. flexible spacer
 9. dashed footer divider
 10. footer controls/links
@@ -772,9 +772,15 @@ scoreboard.
 
 ### 8.4 Archive
 
-Default: list view, compact filter row, grouped section headers, topic/difficulty/sort controls.
+Default: list view, compact filter row, grouped section headers, tag/difficulty/sort controls.
 
 Optional: grid view; persist view choice in `localStorage`.
+
+**Tags are a filter axis, not a navigation axis.** The filter row narrows by tag
+(`bloat`, `jvm`, `autovacuum`); `/topics` is the coarse browse. They are separate
+because they answer different questions — "show me every bloat incident" and
+"show me the incidents about storage engines" have different answers. Keeping
+them apart is also what lets each incident sit under exactly one section.
 
 ### 8.5 Email signup
 
@@ -1036,12 +1042,33 @@ exact mismatch section 3.5 now forbids. As a sibling it gets
 `--space-divider` on both sides, like every other divider on the site.
 
 **The two sidebar lists were never out of rhythm.** A review flagged the primary
-nav and the tag list as using different vertical rhythms. Measured, both render
+nav and the topic list as using different vertical rhythms. Measured, both render
 `NavItem` and come out at 36.75px with 6px/6px padding and an 8px gap — already
-identical. The tags read as secondary because of the indent and the count, not
+identical. The topics read as secondary because of the indent and the count, not
 because their rows are shorter. A different row height there would have been an
 arbitrary mismatch, so the fix was to pin both to `--space-row-compact` and
 leave the geometry alone.
+
+**Sections are a partition by topic, and tags are not sections.** The first
+version derived `/topics` and the sidebar's section list from each incident's
+`tags`, which was wrong twice over. It was a cross-index, so the same post
+appeared under `postgres`, `autovacuum`, *and* `bloat` — on a five-post archive
+that made the page read as padding. And because tags are free-text, the taxonomy
+was accidental: `postgres` was both a section and a filter that returned almost
+everything, and eleven of the twelve headings held exactly one post.
+
+The fix separates the two axes rather than merging them. Each incident now carries
+exactly one `topic`, drawn from a curated `TOPICS` list in
+`content/incidents/types.ts`, and `/topics` groups by that alone — so a post is
+filed once and the counts sum to the incident total. `tags` stay as the archive
+filter and the incident-page badges, which is the question they were actually good
+at answering. `TOPICS` is a literal union on purpose: a mistyped topic in an
+incident file is a type error, not a fifth section.
+
+The taxonomy is Caching / Databases / Runtime / Platform. Caching is split from
+Databases because a cache stampede and a bloat problem fail differently and are
+diagnosed differently. Revisit the count when the archive is large enough that a
+section has more than a handful of posts; the taxonomy is meant to stay at four.
 
 **The spacing base is 2px, not 4px.** Section 3.5 records why, with the
 reference values that force it. This is the one place where the obvious

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Incident } from "@/lib/incidents";
+import { topicMeta, type Incident } from "@/lib/incidents";
 import { TagMark } from "@/components/ui/badge";
 
 /**
@@ -15,7 +15,7 @@ import { TagMark } from "@/components/ui/badge";
  * information, not decoration).
  */
 export function GridCard({ incident }: { incident: Incident }) {
-  const [primary, ...rest] = incident.tags;
+  const topic = topicMeta(incident.topic);
 
   return (
     <Link
@@ -39,9 +39,11 @@ export function GridCard({ incident }: { incident: Incident }) {
 
       <div className="flex items-center justify-between gap-2 px-1 pt-2 font-mono text-micro text-ink-3">
         <span className="flex min-w-0 items-center gap-1.5 uppercase tracking-wider">
-          {primary ? <TagMark tag={primary} /> : null}
+          <TagMark tag={topic.label} />
           <span className="truncate">
-            {rest.length > 0 ? `${primary} · ${rest.join(" · ")}` : primary}
+            {incident.tags.length > 0
+              ? `${topic.label} · ${incident.tags.join(" · ")}`
+              : topic.label}
           </span>
         </span>
         <time dateTime={incident.publishedAt} className="shrink-0 tabular-nums">

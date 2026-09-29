@@ -6,6 +6,7 @@ export const livenessProbeCascadingRestarts = {
     "Traffic spikes. Pods start dying. Healthy pods, killed by their own cluster.",
   publishedAt: "2026-09-26",
   difficulty: "hard",
+  topic: "platform",
   tags: ["kubernetes", "cascading-failure", "load-shedding"],
   symptom:
     "A Kubernetes service scales fine most of the time. But during traffic spikes, pod restart counts climb sharply, available replica count actually DROPS during the spike, and the outage gets worse before it recovers — the opposite of what autoscaling should do.",

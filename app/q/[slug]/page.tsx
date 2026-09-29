@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getIncident, incidents } from "@/lib/incidents";
+import { getIncident, incidents, topicMeta } from "@/lib/incidents";
 import {
   Constraints,
   Evidence,
@@ -48,10 +49,23 @@ export default async function IncidentPage({
       <article className="flex flex-col gap-section">
         <header className="flex flex-col gap-item">
           <span className="flex flex-wrap items-center gap-item font-mono text-micro tracking-wider text-ink-3 uppercase">
+            {/*
+              The topic leads, and links to the section this post is filed under.
+              Tags stay as badges: they are what the post is *about*, and the
+              section is where it is *shelved* — a reader who lands here should be
+              one click from its neighbours without knowing the term for the
+              problem.
+            */}
+            <Link
+              href={`/topics#${incident.topic}`}
+              className="underline-offset-4 hover:text-ink hover:underline"
+            >
+              {topicMeta(incident.topic).label}
+            </Link>
+            <span aria-hidden>&middot;</span>
             <time dateTime={incident.publishedAt} className="tabular-nums">
               {incident.publishedAt}
             </time>
-            <span aria-hidden>&middot;</span>
             {incident.tags.map((tag) => (
               <TagBadge key={tag} tag={tag} />
             ))}

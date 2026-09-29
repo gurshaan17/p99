@@ -6,6 +6,7 @@ export const autovacuumStarvationLongTransaction = {
     "No deploy. No traffic change. Queries just keep getting slower, day over day.",
   publishedAt: "2026-09-25",
   difficulty: "medium",
+  topic: "databases",
   tags: ["postgres", "autovacuum", "bloat"],
   symptom:
     "A Postgres table with a heavy UPDATE/DELETE workload gets progressively slower over several days — not a sudden spike, a slow creep. No deploys, no traffic changes correlate.",

@@ -5,6 +5,7 @@ export const cacheStampedeSynchronizedTtl = {
   title: "98% cache hit rate → 40%, every 60 seconds, like clockwork",
   publishedAt: "2026-09-29",
   difficulty: "medium",
+  topic: "caching",
   tags: ["redis", "caching", "postgres"],
   symptom:
     "Your API caches expensive aggregation results in Redis with a flat 60-second TTL. Every 60 seconds, in a tight window, Postgres CPU spikes and p99 latency jumps from 20ms to 2-4 seconds — then it recovers, until the next cycle.",

@@ -1,7 +1,12 @@
-import { incidents, type Incident } from "@/content/incidents";
+import {
+  incidents,
+  TOPICS,
+  type Incident,
+  type Topic,
+} from "@/content/incidents";
 
-export type { Incident };
-export { incidents };
+export type { Incident, Topic };
+export { incidents, TOPICS };
 
 export type Difficulty = Incident["difficulty"];
 export type RubricDim = Incident["rubric"][number]["dim"];
@@ -26,9 +31,28 @@ export function recentIncidents(count: number): Incident[] {
 }
 
 /**
+ * The sidebar's section list — one row per topic, in `TOPICS` order.
+ *
+ * Curated, not derived: `topicCounts` reads these off the content but the
+ * *order* and the empty-state suppression come from `TOPICS`, so an area with no
+ * incidents yet does not render a heading over nothing.
+ *
+ * A topic is a partition, not a cross-index — every incident appears under
+ * exactly one, so the counts here sum to the incident total.
+ */
+export const topicCounts = TOPICS.map((t) => ({
+  ...t,
+  count: incidents.filter((i) => i.topic === t.id).length,
+})).filter((t) => t.count > 0);
+
+/**
  * Every tag in use, ordered by how many incidents carry it, then alphabetically.
  * Derived from content rather than hand-listed, so a new incident's tags show up
  * without editing anything else.
+ *
+ * Tags are a filter axis, not a navigation axis. They are deliberately not the
+ * section list: `postgres` alone would collect every incident, and a section per
+ * tag gives a dozen shelves holding one incident each.
  */
 export const tagCounts = (() => {
   const counts = new Map<string, number>();
@@ -46,6 +70,14 @@ export const tags = tagCounts.map((t) => t.tag);
 
 export function incidentsByTag(tag: string): Incident[] {
   return incidents.filter((i) => i.tags.includes(tag));
+}
+
+export function incidentsByTopic(topic: Topic): Incident[] {
+  return incidents.filter((i) => i.topic === topic);
+}
+
+export function topicMeta(topic: Topic) {
+  return TOPICS.find((t) => t.id === topic)!;
 }
 
 export const totalIncidents = incidents.length;

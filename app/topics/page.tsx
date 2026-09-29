@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { incidentsByTag, tagCounts } from "@/lib/incidents";
+import { incidentsByTopic, topicCounts } from "@/lib/incidents";
 import { SectionHeader } from "@/components/archive/section-header";
 import { ListRow } from "@/components/archive/list-row";
 
@@ -11,14 +11,18 @@ export const metadata: Metadata = {
 /**
  * Topics — DESIGN.md section 8.4.
  *
- * Anchor ids match `tagNav`'s hrefs (`/topics#caching`), so the sidebar's tag
- * links land on the right group. `scroll-mt` keeps the target clear of the
- * sticky topbar.
+ * Anchor ids match `topicNav`'s hrefs (`/topics#databases`), so the sidebar's
+ * section links land on the right group. `scroll-mt` keeps the target clear of
+ * the sticky topbar.
  *
- * This is a cross-index, not a partition: an incident appears under every tag it
- * carries, so the same incident shows up under both `postgres` and `autovacuum`.
- * `tagCounts` is already derived from content, so no hand-maintained tag list
- * exists anywhere in this page.
+ * This is a partition, not a cross-index. Every incident carries exactly one
+ * `topic` and appears under exactly that heading — a post filed twice reads as
+ * padding. Fine-grained `tags` stay available as the archive filter; they are
+ * not navigation, and a section per tag gave a dozen shelves holding one
+ * incident each.
+ *
+ * `topicCounts` supplies the order, the counts, and the suppression of areas
+ * with nothing in them, so the headings cannot drift from the content.
  */
 export default function TopicsPage() {
   return (
@@ -29,26 +33,22 @@ export default function TopicsPage() {
         description="Grouped by what broke, not by which tool it happened in."
       />
 
-      {tagCounts.map(({ tag, count }) => {
-        const items = incidentsByTag(tag);
+      {topicCounts.map(({ id, label, description, count }, i) => {
+        const items = incidentsByTopic(id);
         return (
           <section
-            key={tag}
-            id={tag}
-            aria-labelledby={`h-${tag}`}
+            key={id}
+            id={id}
+            aria-labelledby={`h-${id}`}
             className="flex scroll-mt-16 flex-col gap-2"
           >
-            <div className="flex items-baseline gap-2.5">
-              <h2
-                id={`h-${tag}`}
-                className="font-display text-lead font-medium text-ink capitalize"
-              >
-                {tag}
-              </h2>
-              <span className="font-mono text-micro text-ink-3 tabular-nums">
-                {count}
-              </span>
-            </div>
+            <SectionHeader
+              index={String(i + 2).padStart(2, "0")}
+              title={label}
+              description={description}
+              count={count}
+            />
+
             <ul className="list-rows flex flex-col">
               {items.map((incident) => (
                 <ListRow key={incident.slug} incident={incident} />

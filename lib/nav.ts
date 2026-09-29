@@ -1,5 +1,5 @@
 import { Archive, Flame, Info, type LucideIcon } from "lucide-react";
-import { tagCounts } from "@/lib/incidents";
+import { topicCounts } from "@/lib/incidents";
 
 export type NavItemSpec = {
   href: string;
@@ -8,7 +8,7 @@ export type NavItemSpec = {
   count?: number;
 };
 
-export type TagNavSpec = {
+export type TopicNavSpec = {
   href: string;
   label: string;
   count: number;
@@ -29,15 +29,15 @@ export const nav: NavItemSpec[] = [
 ];
 
 /**
- * Tag filters shown under SECTIONS. Derived from real content via `tagCounts`,
- * never hand-listed, so a new incident's tags appear here without an edit.
+ * Topic sections shown under SECTIONS. Reads `topicCounts`, so the order and
+ * the counts come from the same place `/topics` renders and cannot disagree.
  *
- * An incident can sit under more than one tag, so the per-tag counts sum to more
- * than the incident total. That is intended — it is a cross-index, not a
- * partition.
+ * These used to be tags. The cross-index that produced was correct as a filter
+ * and wrong as navigation: every incident repeated under each of its tags, and
+ * `postgres` was both a section and a filter that returned everything.
  */
-export const tagNav: TagNavSpec[] = tagCounts.map(({ tag, count }) => ({
-  href: `/topics#${tag}`,
-  label: tag,
-  count,
+export const topicNav: TopicNavSpec[] = topicCounts.map((t) => ({
+  href: `/topics#${t.id}`,
+  label: t.label,
+  count: t.count,
 }));
