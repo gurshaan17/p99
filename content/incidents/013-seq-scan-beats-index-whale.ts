@@ -21,7 +21,7 @@ export const seqScanBeatsIndexWhale = {
     "The typical-user plan is an index scan with ~40 heap fetches; the whale's plan is a seq scan over 1.25M pages",
     "Forcing the index produces a plan dominated by random single-page reads across the whole table",
     "The whale's rows are spread over nearly every one of the 1.25M pages — about 5 matches per page on average",
-    "EXPLAIN (ANALYZE, BUFFERS) on the typical user shows Heap Fetches near 0 relative to Buffers, so the index path is genuinely efficient at that selectivity",
+    "EXPLAIN (ANALYZE, BUFFERS) on the typical user shows ~40 heap fetches and ~40 buffers read, so the index path touches almost nothing — the same plan is not slow, it is being asked to do a different job",
   ],
   question:
     "Why is the index slower than reading the entire table, what is the planner actually comparing, and what would you do about a user with 6M rows?",
@@ -95,7 +95,7 @@ And the real answer is upstream of all of it: **no API needs 6 million full rows
   fix: `- **Question the access pattern first.** Nothing needs 6M full rows at once. Use keyset pagination — \`WHERE user_id = $1 AND id > $last ORDER BY id LIMIT 1000\` — on a composite \`(user_id, id)\` index, so each request touches a bounded number of rows.
 - **If only a few columns are needed, make the index cover them**: \`CREATE INDEX ... ON events (user_id, id) INCLUDE (col_a, col_b)\`. That enables an index-only scan and skips heap fetches entirely.
 - **Verify the index-only scan is real.** Check \`EXPLAIN (ANALYZE, BUFFERS)\` for \`Heap Fetches:\` — a non-zero count means the visibility map is not all-visible and the scan is still going to the heap. Tune autovacuum for this table until it is near zero.
-- **Take the whale's aggregates off the OLTP path entirely**: precompute, use a read replica, or partition and archive. Replicas are fine for history reads but never for the claim step — replica lag breaks the guarantee.
+- **Take the whale's aggregates off the OLTP path entirely**: precompute them, or partition and archive. A read replica serves the read-only history fine, but replica lag means it cannot back a correctness-sensitive read, so do not point one of those at it.
 - **Lower \`random_page_cost\` for SSD** (often ~1.1) so the cost model matches the hardware, and keep statistics fresh — \`ANALYZE\`, with a higher statistics target on a skewed column like \`user_id\`.
 - **Don't \`CLUSTER\` on \`user_id\`.** It takes a heavy lock, rewrites the table once, helps only that one ordering, and decays as new rows arrive.
 - **Set \`statement_timeout\`** so a 40s scan can never starve normal traffic, and use \`pg_stat_statements\` plus \`auto_explain\` to catch these shapes in production.`,

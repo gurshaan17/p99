@@ -19,7 +19,7 @@ export const idempotencyKeyDoubleCharge = {
     "The API must stay available when the provider is slow — no unbounded waiting",
   ],
   evidence: [
-    "Duplicated orders always have two different order IDs and two separate provider charge IDs, minutes apart, for the same user and amount",
+    "Duplicated orders always have two different order IDs and two separate provider charge IDs, within seconds of each other, for the same user and amount",
     "The charged-but-no-order cases cluster around requests that took 5–10s, i.e. where the client gave up and the server was still working",
     "Restarts and deploys during the incident window line up with several of the charged-without-order tickets",
     "No request ever carried an idempotency key, so the provider had no way to recognise a repeat of the same charge",

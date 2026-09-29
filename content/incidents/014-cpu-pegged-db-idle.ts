@@ -19,7 +19,7 @@ export const cpuPeggedDbIdle = {
     "No caching layer in front of the database",
   ],
   evidence: [
-    "Postgres CPU never rises, and the query itself is a covered index lookup — the database is not the constraint",
+    "Postgres CPU never rises, and the query is a single indexed lookup on an equality match — the database is not the constraint",
     "The handler is trivial: one query, one redirect, almost no work of its own",
     "The process is running far more concurrent requests than 4 cores can execute, all of them blocked on the same small set of DB connections",
     "No pprof endpoint was exposed, so nobody has a profile of where the CPU is actually going",
@@ -70,9 +70,9 @@ export const cpuPeggedDbIdle = {
       answer: "bound-pool",
     },
   ],
-  diagnosis: `**An idle database is the most useful thing in this incident.** It rules out the query. \`SELECT long_url WHERE shortcode = $1\` is a covered index lookup, Postgres is at 20% CPU, and the round-trip is 2ms — the database is answering fine. The cost is entirely inside the Go process.
+  diagnosis: `**An idle database is the most useful thing in this incident.** It rules out the query. \`SELECT long_url FROM urls WHERE shortcode = $1\` is one indexed equality lookup — it finds one row and hands it back. Postgres is at 20% CPU, and the round-trip is 2ms. The database is answering fine, and the cost is entirely inside the Go process.
 
-The mechanism is a concurrency problem wearing a CPU-bound costume. Go's \`net/http\` runs one goroutine per request, and goroutines are genuinely cheap (~2–4KB of stack) — that is not the problem. The problem is that at 5,000 req/sec on 4 cores, thousands of goroutines are all blocked waiting for the *same small set* of database connections from \`database/sql\`. They wake, contend on the pool's internal mutex, block again, and get rescheduled. The CPU is being spent on scheduler work, futex wakeups, and context switches, plus GC pressure from the allocation rate of all that request handling. None of that is your handler. It is the cost of being asked to do 5,000 things per second with 4 cores and a narrow shared resource in the middle.
+The mechanism is a concurrency problem wearing a CPU-bound costume. \`net/http\` serves each request on its own goroutine, and goroutines are genuinely cheap (~2–4KB of stack) — that is not the problem. The problem is that at 5,000 req/sec on 4 cores, thousands of them are all blocked waiting for the *same small set* of database connections from \`database/sql\`. They wake, contend on the pool's internal mutex, block again, and get rescheduled. The CPU is being spent on scheduler work, futex wakeups, and context switches, plus GC pressure from the allocation rate of all that request handling. None of that is your handler. It is the cost of being asked to do 5,000 things per second with 4 cores and a narrow shared resource in the middle.
 
 The default pool settings are what turn a small problem into this one. With \`MaxOpenConns\` unset, the pool is unbounded, so the process can open far more connections than Postgres serves well — and even where it does not, the pool hands out a small number of reusable connections to a huge number of waiting goroutines, which is exactly the contention described above. **Bounding the pool does not reduce throughput; it moves the queue somewhere you can see and control**, converting thousands of goroutines fighting over connections into a bounded, measurable wait.
 
