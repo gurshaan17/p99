@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import {
   diagnosedDays,
+  streakFrom,
   streakGrid,
+  streakTo,
   streakWeeks,
   totalIncidents,
 } from "@/lib/incidents";
@@ -13,11 +15,36 @@ export const metadata: Metadata = {
   description: "Every day you diagnosed something instead of guessing.",
 };
 
+/**
+ * The grid reads the wall clock so a run can visibly break; without a rebuild a
+ * day that published nothing would never appear. Daily revalidation is the price
+ * of that, and it is a literal because Next has to statically analyse it.
+ */
+export const revalidate = 86400;
+
 const TONE = {
   done: "bg-accent-ink",
   missed: "bg-line-strong",
-  empty: "bg-transparent ring-1 ring-line ring-inset",
+  none: "bg-transparent ring-1 ring-line ring-inset",
 } as const;
+
+/**
+ * Fixed locale and time zone so the label is identical wherever the page is
+ * built. The keys are local-calendar dates, so they are read back as UTC to
+ * avoid re-reading them as UTC the day before.
+ */
+const DAY = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+function describeWindow(): string {
+  return `${DAY.format(new Date(streakFrom))} to ${DAY.format(
+    new Date(streakTo),
+  )}`;
+}
 
 export default function StreakPage() {
   return (
@@ -28,33 +55,46 @@ export default function StreakPage() {
         description={`${diagnosedDays} of ${totalIncidents} incidents diagnosed.`}
       />
 
-      <div className="overflow-x-auto">
-        <div
-          className="grid w-max grid-flow-col grid-rows-7 gap-1"
-          role="img"
-          aria-label={`Contribution grid: ${diagnosedDays} days with a published incident, over the last ${streakWeeks} weeks.`}
-        >
-          {streakGrid.flat().map((tone, i) => (
-            <span
-              key={i}
-              className={`size-2.5 rounded-hairline ${TONE[tone]}`}
-            />
-          ))}
-        </div>
-      </div>
+      {streakWeeks === 0 ? (
+        <p className="text-body text-ink-2 text-pretty">
+          No incidents are published yet, so there is nothing to plot. The first
+          one to go out starts the grid.
+        </p>
+      ) : (
+        <>
+          <div className="overflow-x-auto">
+            <div
+              className="grid w-max grid-flow-col grid-rows-7 gap-1"
+              role="img"
+              aria-label={`Contribution grid: ${diagnosedDays} days with a published incident, over the ${streakWeeks} weeks from ${describeWindow()}, Monday to Sunday. Cells before the first incident and after today are empty.`}
+            >
+              {streakGrid.flat().map((tone, i) => (
+                <span
+                  key={i}
+                  className={`size-2.5 rounded-hairline ${TONE[tone]}`}
+                />
+              ))}
+            </div>
+          </div>
 
-      <div className="flex items-center gap-4 font-mono text-micro text-ink-3">
-        <span className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-hairline bg-accent-ink" /> diagnosed
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-hairline bg-line-strong" /> missed
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-hairline ring-1 ring-line ring-inset" />{" "}
-          ahead
-        </span>
-      </div>
+          {/*
+            Two entries, not three. The ringed cell is `none` — before the site
+            existed, or later than today — and a "missed" label on it was a lie
+            about days that had not failed at anything. It is not in the legend
+            because it is an absence rather than a value, and the aria-label
+            says what it covers.
+          */}
+          <div className="flex items-center gap-4 font-mono text-micro text-ink-3">
+            <span className="flex items-center gap-1.5">
+              <span className="size-2.5 rounded-hairline bg-accent-ink" />{" "}
+              diagnosed
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-2.5 rounded-hairline bg-line-strong" /> missed
+            </span>
+          </div>
+        </>
+      )}
 
       {/*
         The reader's own record. A client island rather than a second copy of this

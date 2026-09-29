@@ -757,12 +757,30 @@ Use a compact contribution-style grid. It should feel informational rather than 
 Two views, and they answer different questions:
 
 - **The published grid** is site-level: which days have an incident. Derived from
-  `publishedAt`, so it is identical on the server and the client and a prerendered
-  page cannot change its own output depending on when it was built.
+  `publishedAt` and filtered through `isPublished`, so a scheduled incident cannot
+  draw as diagnosed before its day. It is a real Monday-to-Sunday calendar, sized
+  to the site's own history and capped at a year, and it reads the wall clock so a
+  run can visibly break — which is why `/streak` sets `revalidate = 86400` instead
+  of being a frozen snapshot. See section 15a.
 - **The reader's record** is personal: current streak, longest streak, incidents
   completed, computed from submitted attempts. Local calendar days, not UTC — "did
   I do something today" is a question about the reader's clock, and a submission
   at 23:30 local time is today even when it is tomorrow in UTC.
+
+The published grid has three tones, and the third one is not a value:
+
+| Tone | Meaning |
+|---|---|
+| `done` | An incident published that day |
+| `missed` | The site was live and published nothing |
+| `none` | Before the first incident, or later than today |
+
+`none` deliberately merges the two ends of the window. A day before the site
+existed has not failed at anything, and a day that has not happened yet cannot
+have; sharing the `missed` tone made a five-day-old site render as delinquent.
+It carries no legend entry, because it is an absence rather than a value and the
+grid's `aria-label` states what it covers. Both views use local calendar days, so
+a day means the same day throughout.
 
 A day counts once a self-check is **submitted**, not when it is locked in; locking
 in is a draft. Today counts toward the current streak, and yesterday still counts
@@ -1150,6 +1168,27 @@ opening on "02 Caching", which reads as a rendering fault. `SectionHeader`'s
 `index` is therefore optional, and the omission is reserved for a page-level
 title — the numbered sections themselves still pass it. Worth revisiting if
 `/topics` ever gains material above the partition that wants numbering.
+
+**The published streak grid reads the wall clock, and section 8.3's old promise
+that it could not is withdrawn.** The rule was that a prerendered page must not
+depend on when it was built, and the grid honoured it by anchoring to the newest
+incident instead of today. That was the wrong invariant for this page: a day that
+published nothing has to be *rendered* as missed, and anchoring to the newest
+incident means a skipped day is never rendered at all, so a streak can never
+visibly break. The page is now `revalidate = 86400`, which keeps it prerendered
+and static while bounding the staleness at a day. A literal, because Next has to
+statically analyse the value.
+
+Three geometry bugs came from the same anchor, and all three were invisible until
+rendered rather than computed. Rows were `anchor + n`, so row 0 was whatever
+weekday the newest incident fell on and the grid was not a calendar; because the
+row was also the offset, five consecutive days rendered as a diagonal staircase
+with no two filled cells sharing a column; and a fixed twelve-week window put 73
+of 84 cells in `missed` on a site five days old, so the page argued against its
+own "one incident a day" premise. It is now a Monday-to-Sunday calendar sized to
+the site's real history and capped at a year, which grows as the site ages. Worth
+revisiting if the site ever publishes retroactively, since a backdated incident
+would appear in a column that already scrolled past.
 
 ---
 

@@ -106,29 +106,124 @@ export function topicMeta(topic: Topic) {
 export const totalIncidents = incidents.length;
 
 /**
- * Streak grid — one column per week, seven rows, anchored to the most recent
- * published incident rather than the wall clock, so a prerendered page does not
- * change its own output depending on when it was built.
+ * Streak grid — DESIGN.md section 8.3.
  *
- * A day counts only if an incident was actually published on it. The old model
- * had a `done` flag and a hand-tuned synthetic grid; the new schema dropped
- * `done`, and inventing a value here would have been worse than deriving one.
+ * A real calendar: one column per week, seven rows, Monday to Sunday, oldest
+ * week first. The previous version anchored its rows to whatever weekday the
+ * newest incident happened to fall on, so the grid was not a calendar at all, and
+ * five consecutive days rendered as a diagonal staircase — no two filled cells
+ * shared a column, which is the opposite of what a run should look like.
+ *
+ * The window is the site's real history, from the week containing the first
+ * published incident to the week containing today, capped at a year. It was a
+ * fixed twelve weeks, which on a site five days old put 73 of 84 cells in the
+ * "missed" tone and had the page arguing against its own "one incident a day"
+ * premise. The cap exists only so a long-lived site does not render an
+ * unreadable grid; before a year those old weeks are not there to lose.
+ *
+ * `none` covers both ends of the window on purpose: days before the site
+ * existed and days that have not happened yet are both absence of a failure,
+ * not a broken promise. They used to share the "missed" tone with real gaps,
+ * which is what made a five-day-old site look delinquent.
+ *
+ * Day boundaries are local, like `isPublished` and the reader's record, so a day
+ * means the same day throughout this module. The previous version used UTC here
+ * and local dates in `isPublished`, which could disagree by one day at midnight.
+ *
+ * This reads the wall clock, so its output does change over time — that is the
+ * whole point of a streak. Without it a run never visibly breaks, because a day
+ * that published nothing has to be *rendered* as missed rather than omitted. The
+ * old code avoided the clock deliberately, to keep a prerendered page from
+ * depending on when it was built; `/streak` now opts into daily revalidation
+ * instead, which buys correctness at the cost of up to a day's staleness.
  */
-export const streakWeeks = 12;
-export type StreakTone = "done" | "missed" | "empty";
 
-export const streakGrid: StreakTone[][] = (() => {
-  const published = new Set(incidents.map((i) => i.publishedAt));
-  const anchor = new Date(`${incidents[0].publishedAt}T00:00:00Z`);
+/** Monday is 0, Sunday is 6. */
+const DAY_MS = 86_400_000;
 
-  return Array.from({ length: 7 }, (_, day) =>
-    Array.from({ length: streakWeeks }, (__, week) => {
-      const date = new Date(anchor);
-      date.setUTCDate(date.getUTCDate() - (streakWeeks - 1 - week) * 7 + day);
-      if (date > anchor) return "empty";
-      return published.has(date.toISOString().slice(0, 10)) ? "done" : "missed";
+/** A year of weeks. Older history scrolls off the left. */
+const MAX_WEEKS = 52;
+
+/**
+ * `done`   — an incident published that day.
+ * `missed` — the site was live that day and published nothing.
+ * `none`   — before the first incident, or later than today.
+ */
+export type StreakTone = "done" | "missed" | "none";
+
+/** Local-calendar day key, `YYYY-MM-DD`. */
+function localDayKey(date: Date): string {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+/** Local midnight for a `YYYY-MM-DD` key. */
+function atMidnight(key: string): Date {
+  const [year, month, day] = key.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+/** Calendar-day arithmetic, not milliseconds, so DST cannot slip a day. */
+function shiftDays(date: Date, by: number): Date {
+  const next = new Date(date);
+  next.setDate(next.getDate() + by);
+  return next;
+}
+
+const streak = (() => {
+  // Filtered, unlike `todaysIncident`: a scheduled incident must not draw as
+  // diagnosed before its day.
+  const published = new Set(
+    incidents.filter((i) => isPublished(i)).map((i) => i.publishedAt),
+  );
+
+  if (published.size === 0) {
+    return { grid: [], weeks: 0, from: "", to: "", days: 0 };
+  }
+
+  const [oldestKey] = [...published].sort();
+  const firstDay = atMidnight(oldestKey);
+  const to = localDayKey(new Date());
+  const today = atMidnight(to);
+
+  const mondayOf = (date: Date) => shiftDays(date, -((date.getDay() + 6) % 7));
+  const start = mondayOf(firstDay);
+  const lastWeek = mondayOf(today);
+
+  // Rounded, because local midnights either side of a DST change are 7*24h ± 1h
+  // apart rather than exactly a week.
+  const spanned =
+    Math.round((lastWeek.getTime() - start.getTime()) / (7 * DAY_MS)) + 1;
+  const weeks = Math.min(MAX_WEEKS, spanned);
+  const firstCell = shiftDays(start, Math.max(0, spanned - weeks) * 7);
+
+  const grid = Array.from({ length: 7 }, (_, day) =>
+    Array.from({ length: weeks }, (_, week) => {
+      const date = shiftDays(firstCell, week * 7 + day);
+      if (date < firstDay || date > today) return "none";
+      return published.has(localDayKey(date)) ? "done" : "missed";
     }),
   );
+
+  return {
+    grid,
+    weeks,
+    from: localDayKey(firstCell),
+    to,
+    days: published.size,
+  };
 })();
 
-export const diagnosedDays = new Set(incidents.map((i) => i.publishedAt)).size;
+export const streakGrid: StreakTone[][] = streak.grid;
+
+/** Columns in the grid. Grows with the site's history, up to a year. */
+export const streakWeeks = streak.weeks;
+
+/** First and last day the grid actually draws, for labelling the window. */
+export const streakFrom = streak.from;
+export const streakTo = streak.to;
+
+export const diagnosedDays = streak.days;
