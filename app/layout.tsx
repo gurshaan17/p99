@@ -8,6 +8,7 @@ import { ORIGIN } from "@/lib/origin";
 import { site } from "@/lib/site";
 import { Sidebar } from "@/components/shell/sidebar";
 import { Topbar } from "@/components/shell/topbar";
+import { FooterLinks } from "@/components/shell/footer-links";
 import "./globals.css";
 
 /**
@@ -104,6 +105,26 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <div className="flex min-w-0 flex-col">
               <Topbar />
               <main className="flex-1 px-(--pad-x) py-(--pad-y)">{children}</main>
+              {/*
+                The sidebar carries the footer at `lg`, and it is `hidden` below
+                that — so on a phone the links and the credit simply were not on
+                the page. Rendered here rather than inside a page so all five
+                routes get it from the shell, alongside `Topbar` and `Sidebar`.
+                `lg:hidden` because at `lg` the sidebar already shows these, and
+                the border would double up.
+
+                A `<footer>` so it is a landmark rather than a last `<div>`, and
+                its own `px`/`py` because this column is padded by `<main>`, which
+                ends above it.
+
+                `align="center"` because a footer spanning the full width of a
+                narrow screen reads as a stranded row stuck to the left edge. At
+                `lg` the sidebar footer stays left-aligned, where it sits under a
+                left-hand column and shares its edge.
+              */}
+              <footer className="mt-(--pad-y) border-t border-dashed border-line px-(--pad-x) py-(--pad-y) text-small text-ink-3 lg:hidden">
+                <FooterLinks align="center" />
+              </footer>
             </div>
           </Frame>
         </ThemeProvider>

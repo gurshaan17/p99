@@ -4,6 +4,7 @@ import Link from "next/link";
 import { nav, topicNav } from "@/lib/nav";
 import { site } from "@/lib/site";
 import { Mark } from "./mark";
+import { FooterLinks } from "./footer-links";
 import { NavItem, SectionLabel } from "@/components/ui/nav-item";
 
 /**
@@ -87,32 +88,7 @@ export function Sidebar() {
       <div className="flex-1" />
 
       <div className="mt-5 border-t border-dashed border-line py-4 text-small text-ink-3">
-        <div className="flex items-center gap-4">
-          <a
-            href="/about#newsletter"
-            className="decoration-transparent underline-offset-4 hover:decoration-current hover:text-ink hover:underline"
-          >
-            Newsletter
-          </a>
-          <a
-            href="/about"
-            className="decoration-transparent underline-offset-4 hover:decoration-current hover:text-ink hover:underline"
-          >
-            Info
-          </a>
-          {/*
-            A real link rather than a label. The file exists and is served from
-            the same `ORIGIN` as everything else, and it is a plain-text route a
-            reader can open — the same reason Newsletter and Info are links here
-            rather than dead headings.
-          */}
-          <a
-            href="/llms.txt"
-            className="decoration-transparent underline-offset-4 hover:decoration-current hover:text-ink hover:underline"
-          >
-            llms.txt
-          </a>
-        </div>
+        <FooterLinks />
       </div>
     </aside>
   );

@@ -16,6 +16,10 @@ export const site = {
   description:
     "One production incident a day. Diagnose the system, not the algorithm.",
   repo: "https://github.com/gurshaan17/p99",
+  author: {
+    name: "Gurshaan",
+    url: "https://gurshaan.xyz",
+  },
 } as const;
 
 /**

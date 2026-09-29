@@ -103,8 +103,23 @@ export default async function IncidentPage({
         */}
         <PredictionForm incident={incident} />
 
-        <div className="h-px bg-line" />
+        {/*
+          A solid hairline used to separate the form from the diagnosis, and it is
+          removed. Two reasons, and the second is the one that showed up on screen.
 
+          It was the only solid divider on the page. Dashed is the only structural
+          rule this design system has (section 6.1) — every item separator, the
+          footer's terminator, the section boundaries — so this one line read as a
+          different kind of boundary rather than the same kind.
+
+          It was also the duplicate. With the reveal locked, the diagnosis renders
+          nothing, so the hairline became the last element in the article and sat
+          ~20px above the footer's own dashed rule. The page ended on two lines,
+          one solid and one dashed, with only whitespace between them. Removing it
+          leaves the dashed footer rule as the single terminator, and the diagnosis
+          is still separated from the form by the article's 32px `gap-section` —
+          the same whitespace that separates every other pair of sections.
+        */}
         <DiagnosisReveal incident={incident} />
 
         <RubricSelfCheck incident={incident} />
