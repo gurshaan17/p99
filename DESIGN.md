@@ -1139,6 +1139,18 @@ already 46px at every width — so the target clears the 40px minimum without th
 control growing. Worth knowing before the next small control reaches for the
 global hook.
 
+**`/topics` has no index on its page title, so its sections number from 01.**
+Section 2.4's implementation rule is preserved everywhere except here, and the
+exception is a consequence of the partition rather than a new pattern. Because
+each incident belongs to exactly one topic, `/topics` is a single page of
+sibling sections rather than a document that opens with a section and continues;
+the other pages number their title 01 only because something follows it. Keeping
+01 on the title and pushing the sections to 02-05 would have left the page
+opening on "02 Caching", which reads as a rendering fault. `SectionHeader`'s
+`index` is therefore optional, and the omission is reserved for a page-level
+title — the numbered sections themselves still pass it. Worth revisiting if
+`/topics` ever gains material above the partition that wants numbering.
+
 ---
 
 ## 16. Reference-specific corrections to the previous DESIGN.md

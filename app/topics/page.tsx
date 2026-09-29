@@ -27,8 +27,12 @@ export const metadata: Metadata = {
 export default function TopicsPage() {
   return (
     <div className="flex flex-col gap-block">
+      {/*
+        No index on the page title, so the sections below number themselves from
+        01. Leaving the title as 01 and starting the sections at 02 — the shape
+        every other page uses — would have left this one opening on "02 Caching".
+      */}
       <SectionHeader
-        index="01"
         title="Topics"
         description="Grouped by what broke, not by which tool it happened in."
       />
@@ -43,7 +47,7 @@ export default function TopicsPage() {
             className="flex scroll-mt-16 flex-col gap-2"
           >
             <SectionHeader
-              index={String(i + 2).padStart(2, "0")}
+              index={String(i + 1).padStart(2, "0")}
               title={label}
               description={description}
               count={count}

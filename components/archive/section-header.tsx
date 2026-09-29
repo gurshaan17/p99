@@ -3,6 +3,10 @@
  *
  * `[index] [display title] [description]` on one baseline, wrapping on mobile.
  *
+ * `index` is optional because a page whose title carries no number should not
+ * start its own sections at 02. Passing it keeps the documented rhythm; omitting
+ * it is for the page-level title only, never for a numbered section.
+ *
  * `count` renders as a trailing mono tally, right-aligned on the row. It is
  * opt-in because most sections have nothing to count; a zero would be worse than
  * an absent slot (section 11).
@@ -13,16 +17,18 @@ export function SectionHeader({
   description,
   count,
 }: {
-  index: string;
+  index?: string;
   title: string;
   description?: string;
   count?: number;
 }) {
   return (
     <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-      <span className="font-mono text-micro text-ink-3 tabular-nums">
-        {index}
-      </span>
+      {index ? (
+        <span className="font-mono text-micro text-ink-3 tabular-nums">
+          {index}
+        </span>
+      ) : null}
       <h2 className="font-display text-lead font-medium text-ink">
         {title}
       </h2>
