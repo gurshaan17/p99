@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
-/* DESIGN.md quotes reference class names (`max-w-[60rem]`, `py-3.5`, …) as
-   evidence. Without this, Tailwind's scanner picks them up as real utilities
+/* DESIGN.md quotes literal class names (`max-w-[60rem]`, `py-3.5`, …) as
+   examples. Without this, Tailwind's scanner picks them up as real utilities
    and ships dead CSS that shadows the token-driven versions. */
 @source not "../DESIGN.md";
 

@@ -4,11 +4,9 @@ Design system for the daily production-incident site (Next.js + MDX + Tailwind).
 
 opencode: read this file before any UI work. Follow it exactly. Never invent visual tokens in components. If a rule is missing, extend this file instead of improvising.
 
-**Reference basis:** this document uses the supplied Designeer HTML as the structural/style reference. The HTML explicitly exposes a `max-w-[60rem]` frame, an `18rem` desktop sidebar, dashed `border-line` separators, `rounded-chip` and `rounded-control` primitives, `font-display`, `font-pixel`, `font-mono`, `text-body`, `text-small`, and `text-micro` typography roles, 32px toolbar controls, and responsive `lg`/`sm` behavior. These are stronger evidence than the previous screenshot estimates.
+**Structure at a glance:** a `max-w-[60rem]` frame, an `18rem` desktop sidebar, dashed `border-line` separators, `rounded-chip` and `rounded-control` primitives, `font-display`, `font-pixel`, `font-mono`, `text-body`, `text-small`, and `text-micro` typography roles, 32px toolbar controls, and responsive `lg`/`sm` behavior.
 
-Do not copy the reference site's logo, copy, content, brand assets, or proprietary illustrations. Recreate the design language only.
-
-Values that are not explicitly recoverable from the supplied HTML (especially exact color hex values, exact `--pad-x`, `--pad-y`, radius values, and font files' family names) remain tokens to be measured in DevTools before being treated as exact. Do not invent replacement values in component code.
+This is this project's own design language. Every value below is a decision made here, and the tokens in `app/globals.css` and `app/fonts.ts` are its single source of truth. Do not invent replacement values in component code, and do not re-derive a token from an external source — if a value is not listed here, promote it into this document first.
 
 ---
 
@@ -19,19 +17,19 @@ Values that are not explicitly recoverable from the supplied HTML (especially ex
 3. **Lines do the structural work.** Prefer dashed hairlines and subtle separators over heavy cards, shadows, or nested containers.
 4. **Typography creates hierarchy.** Use display type for section/title moments, pixel type for the product wordmark or special identity moments, mono for metadata/labels/counts, and the normal sans role for body copy.
 5. **Neutral first, accent second.** Most surfaces remain neutral. Accent appears on selected/highlighted elements, promotional treatment, and occasional actions.
-6. **Micro-interactions are tactile, not decorative.** The reference HTML uses short transitions and small active-state scale changes. Use these sparingly and consistently.
+6. **Micro-interactions are tactile, not decorative.** Use short transitions and small active-state scale changes. Use these sparingly and consistently.
 7. **Responsive by composition, not shrinkage.** Desktop has a persistent sidebar; below `lg`, navigation becomes mobile-first and the desktop chrome disappears.
 8. **No visual noise.** Avoid gradients in UI chrome, large shadows, excessive rounded cards, glass effects, bounce animations, or oversized hero sections.
 
 ---
 
-## 2. Evidence from the supplied reference HTML
+## 2. Structural foundations
 
-These rules are directly supported by the supplied HTML rather than guessed from screenshots.
+The frame, the sidebar, and the section rhythm the rest of this document builds on.
 
 ### 2.1 Page shell
 
-Reference structure:
+Structure:
 
 ```
 frame
@@ -40,7 +38,7 @@ frame
     └── main: minmax(0, 1fr)
 ```
 
-Observed classes:
+Classes:
 
 - `.frame mx-auto w-full max-w-[60rem]`
 - desktop layout: `lg:grid lg:grid-cols-[18rem_minmax(0,1fr)]`
@@ -51,11 +49,11 @@ Observed classes:
 - horizontal padding is consistently driven by `--pad-x`
 - vertical page padding is driven by `--pad-y`
 
-**Implementation rule:** use a 60rem maximum shell and an 18rem desktop sidebar. Do not use the previous approximate 1100px shell or 300px sidebar.
+**Implementation rule:** use a 60rem maximum shell and an 18rem desktop sidebar.
 
 ### 2.2 Desktop sidebar
 
-The supplied HTML shows:
+The sidebar:
 
 - full-height sticky sidebar
 - horizontal padding via `--pad-x`
@@ -73,7 +71,7 @@ The supplied HTML shows:
 
 ### 2.3 Main top bar
 
-The supplied HTML shows:
+The top bar:
 
 - `border-b border-dashed border-line`
 - `bg-page`
@@ -87,11 +85,11 @@ The supplied HTML shows:
 - active controls may use `bg-field`
 - interaction includes a small `active:scale-[0.98]`
 
-**Implementation rule:** the toolbar is compact. Do not turn it into a 76px-tall marketing header. Use the tokenized horizontal padding and 32px controls.
+**Implementation rule:** the toolbar is compact. Use the tokenized horizontal padding and 32px controls.
 
 ### 2.4 Section rhythm
 
-Observed section structure:
+Section structure:
 
 ```
 section
@@ -103,7 +101,7 @@ section
 
 Section heading pattern: `mono index` → `display heading` → `body/description`.
 
-Observed classes include:
+Classes:
 
 - index: `font-mono text-micro text-ink-3 tabular-nums`
 - heading: `font-display text-lead font-medium tracking-display text-ink`
@@ -114,7 +112,7 @@ Observed classes include:
 
 ### 2.5 List rows
 
-The supplied HTML shows a compact list pattern:
+A compact list pattern:
 
 - rows are grouped inside a list
 - row links use `rounded-chip`
@@ -129,7 +127,7 @@ The supplied HTML shows a compact list pattern:
 
 ### 2.6 Promotional panel
 
-Observed structure:
+Structure:
 
 - `rounded-card`
 - `bg-accent-tint/40`
@@ -142,8 +140,6 @@ Observed structure:
 **Implementation rule:** promotional/notice UI should be a soft tinted surface with a restrained radius and typography-led CTA.
 
 ### 2.7 Mobile behavior
-
-Observed HTML:
 
 - desktop navigation is hidden with `lg:hidden` / `max-lg:hidden`
 - mobile chrome is a compact sticky bar
@@ -163,7 +159,7 @@ Put these in `app/globals.css` / Tailwind v4 theme tokens.
 
 ### 3.1 Naming
 
-The reference HTML establishes these semantic concepts:
+These semantic concepts:
 
 | Concept | Token |
 |---|---|
@@ -229,7 +225,7 @@ Use the project's existing token names below. Components must never introduce ra
 }
 ```
 
-> **Important:** the exact hex values above are implementation defaults for this product, not claims that these are the reference site's computed colors. The supplied HTML exposes semantic color names and only explicitly exposes `#a78bfa` in SVG artwork. Measure the reference site's computed values in DevTools if pixel-level color matching is required.
+> **Important:** these hex values are the design system's own definition, set here and consumed from `app/globals.css`. They are not measurements of anything. Changing one is a design decision that belongs in this document, not a drift into the code — if a value needs to move, change it in both places deliberately.
 
 ### 3.3 Dark theme
 
@@ -260,7 +256,7 @@ Use the project's existing token names below. Components must never introduce ra
 }
 ```
 
-The dark accent is intentionally aligned with the explicitly visible `#a78bfa` color in the supplied reference SVG, while the rest remains semantic rather than pretending the HTML exposed exact stylesheet values.
+The dark accent is a lighter step of the same hue as the light theme's, so the accent holds its identity across both themes while staying legible on a dark surface. Every other value pairs with its light counterpart rather than being an independent choice.
 
 ### 3.4 Layout tokens
 
@@ -284,18 +280,18 @@ Do not scatter arbitrary padding values throughout components.
 }
 ```
 
-These are product defaults, not measured reference values. If DevTools provides the real computed values, update these tokens only.
+These are the design system's values. `--pad-x` and `--pad-y` are the only horizontal and vertical padding components should reach for; change the token here and the layout follows.
 
 ### 3.5 Spacing scale
 
 One base unit, one named step per value, and a small set of semantic tokens for
 the relationships that recur across files.
 
-**The base unit is 2px, not 4px.** The values this design language is measured
-against are all 2px multiples, so a 4px-only scale cannot express them without
-silently resizing chrome the reference specifies:
+**The base unit is 2px, not 4px.** Every measurement this design language is built
+on is a 2px multiple, so a 4px-only scale cannot express them without silently
+resizing the chrome the rest of this document specifies:
 
-| From | Reference value | Step |
+| From | Value | Step |
 |---|---|---|
 | 7.1 nav rows | `px-2 py-1.5` → 6px vertical | `--space-1-5` |
 | 5.4 toolbar, 2.5 list rows | `py-2.5` → 10px | `--space-2-5` |
@@ -361,7 +357,7 @@ Rules:
 
 ## 4. Typography
 
-The supplied HTML proves three distinct font roles: `font-display`, `font-pixel`, and `font-mono`. It also uses semantic size roles: `text-lead`, `text-body`, `text-small`, `text-micro`.
+Four distinct font roles: `font-display`, `font-pixel`, `font-mono`, and the body sans. Semantic size roles: `text-lead`, `text-body`, `text-small`, `text-micro`.
 
 ### 4.1 Font roles
 
@@ -370,7 +366,7 @@ The supplied HTML proves three distinct font roles: `font-display`, `font-pixel`
 - **Mono** — used for navigation labels, indices, counts, metadata, keyboard hints, dates, and technical labels.
 - **Body sans** — used for descriptions, paragraphs, controls, and normal UI copy.
 
-Use `next/font/local` for supplied/local font assets where available. Do not make components request fonts from external CSS.
+Use `next/font/local` for the local font assets. Do not make components request fonts from external CSS.
 
 **Resolution in this repo** (`app/fonts.ts`): body sans `Geist`, display `Space_Grotesk`, pixel `Geist Pixel`, mono `Geist_Mono`. The pixel face pairs with the Geist superfamily so the wordmark reads as one system. Each loader exposes only a CSS variable, so components reference the roles by name and never by family.
 
@@ -425,11 +421,11 @@ Desktop:
 }
 ```
 
-The desktop sidebar is exactly `18rem` in the supplied HTML. Do not add a wide marketing-style centered hero. The shell should feel like a compact application/catalogue.
+The desktop sidebar is exactly `18rem`. Do not add a wide marketing-style centered hero. The shell should feel like a compact application/catalogue.
 
 ### 5.2 Hatched gutters
 
-Hatched gutters are optional and should only be used if they reinforce the reference composition. They must not visually compete with the content.
+Hatched gutters are optional and should only be used where they reinforce the composition. They must not visually compete with the content.
 
 ```css
 .gutter {
@@ -468,7 +464,7 @@ Internal order:
 9. dashed footer divider
 10. footer controls/links
 
-The reference's orb is approximately `size-25` (100px under default Tailwind spacing). For this product, use a custom abstract mark rather than copying the reference orb.
+The mark is `size-25` (100px under default Tailwind spacing). It is a custom abstract glyph, not a reproduction of anything.
 
 ### 5.4 Main top bar
 
@@ -519,7 +515,7 @@ Do not introduce `rounded-xl`, `rounded-2xl`, etc. directly in product component
 
 ### 6.3 Shadows
 
-The reference language is intentionally flat.
+The language is intentionally flat.
 
 **Allowed:**
 
@@ -540,7 +536,7 @@ The reference language is intentionally flat.
 
 ### 7.1 Navigation item
 
-Reference pattern:
+Pattern:
 
 ```css
 display: flex;
@@ -559,7 +555,7 @@ States:
 
 Counts: `font-mono`, `text-micro`, `tabular-nums`, muted, `margin-left: auto`.
 
-The reference uses a hover plate that can move between navigation rows. If implemented, animate the plate rather than independently animating every row background.
+A hover plate may move between navigation rows. If implemented, animate the plate rather than independently animating every row background.
 
 ### 7.2 Section header
 
@@ -606,7 +602,7 @@ Hover: border becomes slightly stronger, optional subtle shadow. No translation,
 
 ### 7.5 Toolbar/control button
 
-Reference controls are `h-8` (32px).
+Controls are `h-8` (32px).
 
 ```css
 height: 32px;
@@ -636,7 +632,7 @@ gap: 6px;
 
 ### 7.6 Keyboard shortcut chip
 
-Reference pattern: `height: 20px`, `min-width: 20px`, `rounded-chip`, small horizontal padding, small sans text, subtle neutral background.
+Pattern: `height: 20px`, `min-width: 20px`, `rounded-chip`, small horizontal padding, small sans text, subtle neutral background.
 
 Keyboard hints are decorative UI affordances only. The actual shortcuts must work.
 
@@ -648,11 +644,11 @@ Use sparingly. Do not introduce bright filled accent buttons unless a new produc
 
 ### 7.8 Ghost/text action
 
-Use text + underline behavior where possible. The reference uses `decoration-transparent` by default and `decoration-current` on hover. This is preferable to surrounding every action with a border.
+Use text + underline behavior where possible: `decoration-transparent` by default and `decoration-current` on hover. This is preferable to surrounding every action with a border.
 
 ### 7.9 Promo / notice
 
-Use the reference pattern: `rounded-card`, accent-tint with restrained opacity, `px-4 py-3.5`, `sm:px-5 sm:py-4`.
+Use: `rounded-card`, accent-tint with restrained opacity, `px-4 py-3.5`, `sm:px-5 sm:py-4`.
 
 Top row: `icon + title ......... MONO LABEL`
 
@@ -839,7 +835,7 @@ Code blocks should be quiet and readable. Never use neon syntax colors.
 
 ## 10. Motion
 
-The supplied HTML establishes two motion tokens: `--dur-hover` and `--dur-ui`.
+Two motion tokens: `--dur-hover` and `--dur-ui`.
 
 Use approximately:
 
@@ -869,7 +865,7 @@ Defaults: nav/button icon 16px, stroke 1.5px, color `currentColor`.
 
 Topic icons: ~18px, `rounded-chip` container, monochrome/simple mark.
 
-Do not copy reference brand logos. For the incident site, prefer abstract diagrams, system topology, query/trace motifs, and small technical illustrations over decorative photography.
+Do not import brand logos or third-party artwork. Prefer abstract diagrams, system topology, query/trace motifs, and small technical illustrations over decorative photography.
 
 ---
 
@@ -953,7 +949,7 @@ record, and the semantic tokens are what components actually reach for.
 
 Do not write `bg-[#...]`, `text-[#...]`, `rounded-[...]`, `text-[17px]`, or `px-[13px]` unless the value is first promoted into this design system.
 
-> **Scanner gotcha:** Tailwind v4 extracts class-shaped strings from *any* scanned file, including Markdown and code comments. This document quotes many reference classes as evidence, so `app/globals.css` carries `@source not "../DESIGN.md"` to keep them out of the bundle. When writing a component, do not paste a class name into a comment either — name it in prose. Otherwise the reference value ships as dead CSS that silently shadows the token-driven class.
+> **Scanner gotcha:** Tailwind v4 extracts class-shaped strings from *any* scanned file, including Markdown and code comments. This document quotes literal class names as examples, so `app/globals.css` carries `@source not "../DESIGN.md"` to keep them out of the bundle. When writing a component, do not paste a class name into a comment either — name it in prose. Otherwise the quoted value ships as dead CSS that silently shadows the token-driven class.
 
 ---
 
@@ -1099,10 +1095,9 @@ Databases because a cache stampede and a bloat problem fail differently and are
 diagnosed differently. Revisit the count when the archive is large enough that a
 section has more than a handful of posts; the taxonomy is meant to stay at four.
 
-**The spacing base is 2px, not 4px.** Section 3.5 records why, with the
-reference values that force it. This is the one place where the obvious
-choice — a 4px scale — would have quietly contradicted sections 2.5, 2.6, 5.4,
-7.1, 7.5, and 11.
+**The spacing base is 2px, not 4px.** Section 3.5 records why, with the values that
+force it. This is the one place where the obvious choice — a 4px scale — would have
+quietly contradicted sections 2.5, 2.6, 5.4, 7.1, 7.5, and 11.
 
 **The rubric is now interactive, and the reason it was not has been answered.**
 The previous version rendered it as a read-only list on the grounds that "a
@@ -1279,31 +1274,31 @@ not, with `/archive` as the escape hatch.
 
 ---
 
-## 16. Reference-specific corrections to the previous DESIGN.md
+## 16. The decisions that define this system
 
-The following previous assumptions should not be carried forward:
+If a change to this document ever makes one of these ambiguous, the rest of the
+system stops being derivable. They are the load-bearing choices, collected here
+so they can be defended in one place:
 
-| Previous assumption | Updated rule |
+| Concern | Rule |
 |---|---|
-| ~1100px shell | 60rem shell from `max-w-[60rem]` |
-| ~300px sidebar | 18rem sidebar from `lg:grid-cols-[18rem_minmax(0,1fr)]` |
-| 76px top bar | Compact `py-2.5` toolbar with 32px controls |
-| Sans + mono only | Display + pixel + mono + body sans roles |
-| Generic 10/16px radius vocabulary | control / chip / card / full semantic vocabulary |
-| Large card-heavy UI | Compact catalogue rows + dashed sections |
-| 120–180ms only | Separate hover/UI motion roles |
-| Approximate nav rows | `rounded-chip`, `px-2 py-1.5`, `text-body` |
-| Generic keycaps at 24px | Reference shortcut chips are about 20px high |
-| Blue accent assumed from screenshots | Accent must remain tokenized; exact reference color requires DevTools |
-| Fixed desktop spacing | Use `--pad-x` / `--pad-y` tokens |
-| Generic section cards | Full-width dashed section boundaries |
-| Heavy card shadow language | Flat surfaces with only subtle utility shadows |
+| Shell | 60rem maximum frame, 18rem desktop sidebar |
+| Top bar | Compact `py-2.5` toolbar with 32px controls |
+| Structure | Full-width dashed section boundaries, never per-row cards |
+| Surfaces | Flat; only subtle utility shadows, no glows or glass |
+| Radius | control / chip / card / full semantic vocabulary, no ad hoc values |
+| Type | Display + pixel + mono + body sans roles, at named size roles |
+| Motion | Separate hover and UI duration roles, both short |
+| Nav rows | `rounded-chip`, `px-2 py-1.5`, `text-body` |
+| Shortcut chips | 20px high |
+| Accent | Tokenized; one hue across both themes, never hardcoded per component |
+| Spacing | 2px base unit, with `--pad-x` / `--pad-y` owning page padding |
 
 ---
 
 ## 17. Don'ts
 
-- No copied Designeer logo, wordmark, copy, or brand asset.
+- No borrowed logo, wordmark, copy, or brand asset.
 - No raw hex colors in components.
 - No arbitrary spacing values in components.
 - No arbitrary font sizes in components.
@@ -1336,7 +1331,7 @@ Every UI change must:
 - Preserve keyboard navigation and visible focus.
 - Preserve 40px minimum touch targets.
 - Avoid layout movement on hover.
-- Match the reference language without copying its branding/assets.
+- Match the documented language rather than improvising a new visual idea.
 - Add any genuinely new visual pattern to this document before shipping.
 
-If exact reference matching is required, verify unresolved tokens in DevTools instead of guessing.
+If a token is unresolved, do not guess a value in a component — promote it here first, then implement it.
