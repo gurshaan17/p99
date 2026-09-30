@@ -7,6 +7,7 @@ import { idempotencyKeyDoubleCharge } from "./012-idempotency-key-double-charge"
 import { seqScanBeatsIndexWhale } from "./013-seq-scan-beats-index-whale";
 import { cpuPeggedDbIdle } from "./014-cpu-pegged-db-idle";
 import { hotKeySingleThreadRedis } from "./015-hot-key-single-thread-redis";
+import { counterReadModifyWriteRace } from "./016-counter-read-modify-write-race";
 import type { Incident } from "./types";
 
 export type { Incident };
@@ -31,4 +32,5 @@ export const incidents: Incident[] = [
   seqScanBeatsIndexWhale,
   cpuPeggedDbIdle,
   hotKeySingleThreadRedis,
+  counterReadModifyWriteRace,
 ].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
