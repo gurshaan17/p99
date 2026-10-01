@@ -8,6 +8,7 @@ import { seqScanBeatsIndexWhale } from "./013-seq-scan-beats-index-whale";
 import { cpuPeggedDbIdle } from "./014-cpu-pegged-db-idle";
 import { hotKeySingleThreadRedis } from "./015-hot-key-single-thread-redis";
 import { counterReadModifyWriteRace } from "./016-counter-read-modify-write-race";
+import { rateLimiterSharedStateRedis } from "./017-rate-limiter-shared-state-redis";
 import type { Incident } from "./types";
 
 export type { Incident };
@@ -33,4 +34,5 @@ export const incidents: Incident[] = [
   cpuPeggedDbIdle,
   hotKeySingleThreadRedis,
   counterReadModifyWriteRace,
+  rateLimiterSharedStateRedis,
 ].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
