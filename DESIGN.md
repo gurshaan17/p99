@@ -646,6 +646,50 @@ Use sparingly. Do not introduce bright filled accent buttons unless a new produc
 
 Use text + underline behavior where possible: `decoration-transparent` by default and `decoration-current` on hover. This is preferable to surrounding every action with a border.
 
+Two shapes in `components/ui/button.tsx`: `GhostLink` renders an `<a>`, and
+`PrimaryButton` / `DangerAction` are the `<button>` shapes. Section 7.5's
+`cursor: pointer` rule is carried by the shared variants rather than left to each
+call site.
+
+#### Destructive action
+
+`DangerAction` is the third variant and the only coloured one. It is **outlined**,
+never filled, and that outline is the whole reason colour is allowed here at all:
+section 7.7 forbids bright filled buttons, and a solid red block at the foot of an
+article is exactly that. A hairline costs one glance to read and nothing at rest.
+
+| | value |
+|---|---|
+| height | `h-8` (32px), not section 7.7's 40px |
+| radius | `rounded-control` |
+| border | `border-danger/40`, solid `--danger` on hover |
+| text | `text-danger` |
+| fill | `hover:bg-danger/5` — never at rest |
+| type | `text-small` |
+| label | the verb *and* the consequence |
+
+Four of those are decisions rather than defaults:
+
+- **32px, not 40px.** A destructive action should be the smallest thing in view,
+  not a peer of the primary it sits under. `data-touch-target` carries the
+  coarse-pointer minimum from section 12.
+- **The border is partial opacity at rest and only goes solid on hover.** A page
+  carrying one of these is not permanently red. The colour has to mean "this is
+  how you undo things", not "something is wrong here" — the latter would make
+  every reader who lands on it look for a fault that does not exist.
+- **The fill is 5%.** Enough to register under the cursor, far too little to read
+  as a pressed state on a neutral surface. Section 10 allows `background-color`;
+  it does not ask for a fill that shouts.
+- **The label names the consequence.** Section 13 does not require it, because the
+  label is text and the state is not colour-only. But a control this irreversible
+  should not depend on the reader recognising red, so `Start this incident over`
+  carries the verb and its supporting line carries what goes.
+
+Where a destructive action is confirmed, the confirmation is a replacement, not a
+dialog: the control is replaced by a quiet sentence saying what was cleared
+(section 8.5's pattern). That sentence stays neutral — it reports a finished
+action, so tinting it would leave a red mark on a page that is now a blank form.
+
 ### 7.9 Promo / notice
 
 Use: `rounded-card`, accent-tint with restrained opacity, `px-4 py-3.5`, `sm:px-5 sm:py-4`.
@@ -711,12 +755,53 @@ prediction form  →  lock in  →  solution reveal  →  self-check  →  score
   reasoning as the home page's reveal.
 - **No feedback before lock-in.** Every option looks identical until the reader
   commits. A pick that visibly favours one answer is not a prediction.
-- **Lock-in is irreversible.** The picks and the explanation become read-only the
-  moment it is set, because a self-score is only worth something if the answer it
-  scores was written first.
+- **Lock-in is irreversible *within the attempt*.** The picks and the explanation
+  become read-only the moment it is set, and there is no per-answer edit and no
+  unlock, because a self-score is only worth something if the answer it scores was
+  written first. The reader can still discard the whole attempt and start again
+  (see below) — that is a different act from changing an answer in place, and it
+  is the one that cannot be undone.
 - **The free text is optional.** Only answering no picks at all blocks the
   button. Forcing prose to unlock the page would be a writing test dressed up as a
   diagnostic one.
+
+#### Starting over
+
+One control, at the end of the flow after the score and the closing list, present
+whenever the attempt holds anything at all — including a draft that was never
+locked in, because a reader who picked two options and left has no other way back.
+
+It clears the whole attempt in one action: the picks, the prose, the lock-in, the
+rubric ticks and the self-score. One control rather than a row of per-field undos,
+because the attempt is the unit a reader thinks in — "I want to do that one again"
+— and asking them to choose which half of their own answer they meant would be a
+worse question than the one they were trying to answer.
+
+It is a `DangerAction` (`Start this incident over`), outlined in `--danger` per
+section 7.8, and it does not ask first. Those choices are one decision: this is
+the only irreversible action on the site, so the affordance is small, the colour
+says which of the article's quiet sentences is the one that destroys, and there
+is no dialog — a confirm step in front of a choice the reader has already made by
+reading the label is chrome arguing with them. After it fires, the control is
+replaced by a quiet confirmation line saying what was cleared, which is also the
+`role="status"` announcement.
+
+The outline replaced a ghost text link, and that was the actual defect. As a
+ghost action it looked like every other quiet sentence at the end of an article,
+so nothing on the page told a scanning reader that this one was different *in
+kind*. See section 7.8 for why the fix is an outline and not a filled red button.
+
+Two things go with the record and are stated on the page rather than discovered:
+the streak day the attempt earned (section 8.3 counts submissions, not history)
+and the archive's `read · solved` mark (section 8.4 reads the same two
+timestamps). A reader who resets an incident they got wrong is trading their
+place in the archive for the chance to do it honestly, and that is the trade the
+control exists to let them make.
+
+The removal is unconditional — it does not require a submitted attempt first —
+because the case that matters most is the reader who wants to redo an incident
+they have already scored badly. Gating it on submission would gate the useful case
+behind the useless one.
 
 #### Two scores, never merged
 
@@ -1332,6 +1417,78 @@ returning reader's marks arrive on hydration. That is accepted rather than
 worked around: marking rows on the server would mean rendering the archive per
 reader, and a badge appearing where a row already stood is not a layout shift
 worth preventing.
+
+**Section 8.2's "lock-in is irreversible" was true for two commits and is now
+scoped, because a reader can now discard an attempt.** The original wording —
+"the picks and the explanation become read-only the moment it is set" — is not
+false, but read alone it reads as *and nothing can ever undo it*, which is a
+stronger promise than the design needs and one the product should not make. A
+reader who misreads an incident, gets it wrong, and wants to reason through it
+again with the answer already known has no route today: they cannot re-lock, and
+clearing site data to escape their own history is not a feature.
+
+The bullet now says irreversible *within the attempt*, and the new control is a
+different act from editing an answer in place. That distinction is the whole
+design: what section 8.2 exists to prevent is seeing the verdict, changing your
+answer, and re-scoring — a self-score of an answer written after the diagnosis
+was known. Throwing the attempt away and starting a fresh one cannot produce
+that, because the new attempt has no score attached to it yet.
+
+The other three decisions were made against the obvious alternative and are worth
+the reasoning, since each could reasonably go the other way:
+
+- **No confirmation.** This is the only irreversible action on the site, which is
+  the argument *for* a dialog, and it lost anyway. A dialog asks the reader to
+  confirm a choice they have made by reading the label, and the label already
+  names everything being discarded. What it took instead is the danger outline
+  (section 7.8) and the quiet line that follows — the affordance is small, the
+  colour says which sentence on the page is the destructive one, and the
+  confirmation that earned its place is the one afterwards.
+- **After the score, not in the form.** Everything the control destroys is above
+  it, so a reader who wants it has seen all of it. Inside `04 Your prediction` it
+  would mean scrolling back up past three screens to find it.
+- **Available on a draft.** A draft with two picks and no lock-in is progress the
+  reader can see, and hiding the control until they had committed would leave them
+  stranded with a half-answered question and no way back.
+
+**The supporting line sits under the control, not beside it.** With a bordered
+control the sentence on the same baseline reads as a label hanging off the edge of
+a box, and at 375px the wrap left its first word alone on a row underneath. A
+block stack is also the honest shape: the button is an action and the line is
+about what it does, and those are not the same kind of thing.
+
+`GhostAction` was deleted rather than left behind. It existed only for this
+control, and the moment the control became a `DangerAction` it had no callers —
+the same reasoning that deleted the per-pick `Check` component.
+
+**`PrimaryButton` never set `cursor: pointer`,** which section 7.5 requires of any
+control rendering a `<button>`. Tailwind's preflight leaves buttons on the UA
+arrow and only `a[href]` picks one up, so "Lock in & reveal solution" and "Submit
+self-check" pointed at the reader rather than at what they could press — the exact
+defect section 7.5 documents, sitting in the file that documents it. Fixed while
+adding the danger variant, since the shared `variants` are the right home for it
+and the rule was already written down.
+
+**`resetAttempt` removes the key rather than writing an empty attempt over it.**
+Overwriting would work and would leave a key per incident the reader had ever
+opened, which `enumerateAttemptSlugs` would then walk on `/streak` for records
+that hold nothing. Removal keeps "did this reader ever touch this incident" and
+"what is in it" the same question, answered by the same absence. The index is
+reconciled by handing `syncIndex` an empty attempt rather than by writing a
+second index path, because `syncIndex` already derives the slug's membership from
+whether the record it is given is submitted.
+
+The consequence worth naming is that the reset silently costs the reader two
+things they cannot get back — the streak day and the archive's `read · solved`
+mark — so both are named in the label's supporting line rather than left to be
+discovered on `/streak` a week later.
+
+**`hasProgress` counts the rubric by value, not by key.**
+`setRubricCheck` writes the entry on untick as well as on tick, so a reader who
+ticked one item and unticked it holds `{item: false}` — one key, nothing true. By
+key that record looks like progress and renders a "start this incident over"
+control over an attempt that is, to the reader, empty. Worth remembering before
+another map-shaped field is gated on its own size.
 
 ---
 

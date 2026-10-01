@@ -7,6 +7,7 @@ import {
   parseAttempt,
   attemptKey,
   lockIn,
+  resetAttempt,
   setFreeText,
   setPickAnswer,
   setRubricCheck,
@@ -87,6 +88,7 @@ export function useAttempt(slug: string): Attempt {
 
 export {
   lockIn,
+  resetAttempt,
   setFreeText,
   setPickAnswer,
   setRubricCheck,

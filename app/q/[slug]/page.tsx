@@ -15,6 +15,7 @@ import { PredictionForm } from "@/components/question/prediction-form";
 import { DiagnosisReveal } from "@/components/question/diagnosis-reveal";
 import { RubricSelfCheck } from "@/components/question/rubric-self-check";
 import { ScoreCard } from "@/components/question/score-card";
+import { ResetAttempt } from "@/components/question/reset-attempt";
 import { TagBadge, DifficultyBadge } from "@/components/ui/badge";
 import { GhostLink } from "@/components/ui/button";
 
@@ -143,6 +144,20 @@ export default async function IncidentPage({
           lesson written generally, and a lesson is still the answer.
         */}
         <RememberGate incident={incident} />
+
+        {/*
+          Last, after the bookends. It is the one control on the page whose effect
+          is not local to where it sits — it clears the form, the reveal, the rubric
+          and the score all at once — so it belongs after the conclusion, where a
+          reader can see everything it is about to take away. Putting it inside
+          `04 Your prediction` would mean scrolling back up to it after reading
+          three screens, and putting it before the score would break the pairing
+          those two sections have as the article's opening and closing beats.
+
+          It takes no index for the same reason the score takes none: it is not a
+          section of the incident, it is a control on the reader's attempt.
+        */}
+        <ResetAttempt incident={incident} />
       </article>
 
       {/*

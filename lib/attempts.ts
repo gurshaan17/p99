@@ -78,6 +78,29 @@ export function isResolved(attempt: Attempt): boolean {
   return isLocked(attempt) && isSubmitted(attempt);
 }
 
+/**
+ * Whether the reader has put anything into this attempt at all.
+ *
+ * Gates the reset control, and deliberately counts a draft: two picks and no
+ * lock-in is progress the reader can see and would want to undo, and hiding the
+ * control until they have committed would leave them with no way back from a
+ * half-finished answer.
+ *
+ * The rubric is checked by value, not by key. `setRubricCheck` writes the entry
+ * on untick as well as on tick, so a reader who ticked something and then
+ * unticked it has one key holding `false` and nothing else — and by key that
+ * record would render a "start over" control over an empty attempt.
+ */
+export function hasProgress(attempt: Attempt): boolean {
+  return (
+    Object.keys(attempt.pickAnswers).length > 0 ||
+    attempt.freeText !== "" ||
+    isLocked(attempt) ||
+    Object.values(attempt.rubricChecks).some(Boolean) ||
+    isSubmitted(attempt)
+  );
+}
+
 /* ------------------------------------------------------------------ *
  * Reads
  * ------------------------------------------------------------------ */
@@ -344,4 +367,38 @@ export function submitSelfCheck(slug: string): void {
     if (!isLocked(attempt) || isSubmitted(attempt)) return attempt;
     return { ...attempt, submittedAt: new Date().toISOString() };
   });
+}
+
+/**
+ * Discard the whole attempt for one incident — picks, prose, lock-in, rubric ticks
+ * and submission together.
+ *
+ * One action rather than a set of per-field undos, because that is what the reader
+ * means by it: the attempt is the unit, and a "clear my picks" button next to a
+ * "clear my score" button would be asking them to decide which half of their own
+ * answer they meant.
+ *
+ * The key is removed rather than overwritten with an empty attempt, so an incident
+ * the reader has genuinely never opened leaves nothing behind and
+ * `enumerateAttemptSlugs` cannot resurrect it into `/streak`. The index is
+ * reconciled from an empty attempt because `syncIndex` reads the submission state
+ * off the record it is handed, and a removal is what drops the slug from it.
+ *
+ * Not undoable. The reader's own words are the one thing this site cannot put
+ * back, which is why the control is 32px and outlined rather than sized like the
+ * primary action above it (see `components/question/reset-attempt.tsx`).
+ */
+export function resetAttempt(slug: string): void {
+  const storage = safeStorage();
+  if (storage) {
+    try {
+      storage.removeItem(attemptKey(slug));
+    } catch {
+      // Storage disabled or mid-quota. The hooks re-render from the event below
+      // either way, so the reset holds for the session; it just does not survive a
+      // reload, which is the same bargain every other write here makes.
+    }
+  }
+  syncIndex(slug, emptyAttempt(slug));
+  notify();
 }
