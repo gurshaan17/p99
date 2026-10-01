@@ -21,6 +21,13 @@ import { ATTEMPT_EVENT, readCompletedAttempts, type Attempt } from "@/lib/attemp
  * updates the streak without a reload, which an effect-on-mount would have
  * missed.
  *
+ * Deliberately still keyed on `submittedAt`, while the archive's `read · solved`
+ * mark moved to lock-in. The two answer different questions — "was this reader
+ * shown the answer" against "did this reader finish scoring themselves against
+ * it" — and a streak day for merely locking in would be a streak of page views.
+ * So `readCompletedAttempts` narrows the archive's wider resolved set rather than
+ * sharing it.
+ *
  * The server snapshot is a constant zero, so the first paint is the empty state
  * and a returning reader's real numbers arrive straight after hydration without a
  * mismatch warning. Section 8.3's "informational rather than gamified" is also why
@@ -69,8 +76,9 @@ export function StreakRecord() {
   if (stats.completed === 0) {
     return (
       <p className="text-body text-ink-2 text-pretty">
-        No completed self-checks yet. Lock in a prediction on an incident and it
-        counts toward your streak.
+        No completed self-checks yet. Lock in a prediction on an incident, read the
+        solution, then submit the self-check — that is what counts toward your
+        streak.
       </p>
     );
   }

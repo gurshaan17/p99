@@ -1,10 +1,10 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { ATTEMPT_EVENT, isResolved, readCompletedAttempts } from "@/lib/attempts";
+import { ATTEMPT_EVENT, readResolvedAttempts } from "@/lib/attempts";
 
 /**
- * Which incidents this reader has read through — DESIGN.md section 8.4.
+ * Which incidents this reader has worked through — DESIGN.md section 8.4.
  *
  * One subscription for the whole archive, not one per row. `ArchiveView` is
  * already the client owner of the filter and view state, and the rows are shared
@@ -17,7 +17,7 @@ import { ATTEMPT_EVENT, isResolved, readCompletedAttempts } from "@/lib/attempts
  * first client render rather than in an effect that corrects the server's paint.
  *
  * The snapshot is a `Set`, so it has to be referentially stable or React loops.
- * The cache keys on the sorted slug list, and `readCompletedAttempts` walks only
+ * The cache keys on the sorted slug list, and `readResolvedAttempts` walks only
  * the slugs in the index rather than every key on the origin.
  */
 
@@ -25,9 +25,7 @@ const EMPTY: ReadonlySet<string> = new Set();
 let cache: { version: string; value: ReadonlySet<string> } | null = null;
 
 function getSnapshot(): ReadonlySet<string> {
-  const slugs = [...readCompletedAttempts()]
-    .filter(([, attempt]) => isResolved(attempt))
-    .map(([slug]) => slug);
+  const slugs = [...readResolvedAttempts().keys()];
 
   const version = JSON.stringify([...slugs].sort());
   if (cache && cache.version === version) return cache.value;

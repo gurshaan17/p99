@@ -793,8 +793,8 @@ kind*. See section 7.8 for why the fix is an outline and not a filled red button
 
 Two things go with the record and are stated on the page rather than discovered:
 the streak day the attempt earned (section 8.3 counts submissions, not history)
-and the archive's `read · solved` mark (section 8.4 reads the same two
-timestamps). A reader who resets an incident they got wrong is trading their
+and the archive's `read · solved` mark (section 8.4 derives from the lock-in on the
+same record). A reader who resets an incident they got wrong is trading their
 place in the archive for the chance to do it honestly, and that is the trade the
 control exists to let them make.
 
@@ -822,8 +822,10 @@ Verdicts are always spelled out in words — "Correct.", "Not quite.", "Skipped.
 
 #### Storage
 
-Per incident under `p99:attempt:<slug>`, with `p99:attempts:index` naming the
-submitted slugs so `/streak` need not enumerate every key on the origin.
+Per incident under `p99:attempt:<slug>`, with `p99:attempts:index:v2` naming the
+locked-in slugs so the archive need not enumerate every key on the origin. The
+version suffix is there because membership moved from "self-check submitted" to
+"locked in" — see section 15a for what a stale index would have cost.
 
 - **Saved on every keystroke and selection**, not on submit. A reader interrupted
   mid-thought returns to their own words; the commitment is the lock-in, not the
@@ -867,8 +869,9 @@ It carries no legend entry, because it is an absence rather than a value and the
 grid's `aria-label` states what it covers. Both views use local calendar days, so
 a day means the same day throughout.
 
-A day counts once a self-check is **submitted**, not when it is locked in; locking
-in is a draft. Today counts toward the current streak, and yesterday still counts
+A day counts once a self-check is **submitted**, not when it is locked in — a
+lock-in is a draft, and it is enough for the archive's mark (section 8.4) but not
+for a streak day. Today counts toward the current streak, and yesterday still counts
 so an unfinished today does not read as a broken streak first thing in the
 morning. The empty state is a sentence explaining how to start, not a zeroed
 scoreboard.
@@ -885,12 +888,11 @@ because they answer different questions — "show me every bloat incident" and
 "show me the incidents about storage engines" have different answers. Keeping
 them apart is also what lets each incident sit under exactly one section.
 
-**The archive shows the reader's own progress.** An incident this reader has read
-to the end *and* revealed the solution for is marked `read · solved`, in accent,
-in both views. The definition is section 8.2's record: an attempt with both a
-`lockedAt` and a `submittedAt`, i.e. one that got through the whole
-prediction → reveal → self-score sequence. Nothing new is written to
-`localStorage` to support it.
+**The archive shows the reader's own progress.** An incident this reader has been
+shown the solution for is marked `read · solved`, in accent, in both views. The
+definition is section 8.2's record: an attempt with a `lockedAt`, i.e. one that got
+through prediction → reveal. Nothing new is written to `localStorage` to support
+it. The self-check is deliberately *not* part of it — see section 15a.
 
 The mark is worded, never a tick and never opacity: section 13 forbids carrying a
 state by colour alone, and this row already carries a difficulty badge, a tag
@@ -1378,27 +1380,51 @@ bytes per incident against the spec's advice to keep it inside a context window.
 Both are fine at five incidents and are a deliberate trim decision when they are
 not, with `/archive` as the escape hatch.
 
-**"Read" is a submitted self-check, and no new localStorage key was added for
-it.** The archive marks incidents the reader has finished (section 8.4), which
-sounds like it wants a `p99:read:<slug>` written by a scroll listener on
-`/q/[slug]`. It does not, and the reason is that the two things the mark means —
-read to the end, and revealed the solution — are already the two timestamps
-section 8.2 stores, because the only way past them is to submit a self-check on a
-locked attempt. A third record would have been a third copy of "this reader got
-to the end of this incident", free to disagree with the other two, and it would
-have made the archive's marks and `/streak`'s count answer different questions
-about the same evening.
+**"Read" is the lock-in, and no new localStorage key was added for it.** The
+archive marks incidents the reader has been shown the answer for (section 8.4),
+which sounds like it wants a `p99:read:<slug>` written by a scroll listener on
+`/q/[slug]`. It does not, and the reason is that the mark means exactly one thing —
+the solution was revealed — and that is what the `lockedAt` section 8.2 already
+stores, because the same button both writes it and renders the diagnosis. A third
+record would have been a third copy of "this reader got to the end of this
+incident", free to disagree with the ones already there.
 
-The cost is that "read" means read *and* scored rather than read alone. A reader
-who opens an incident, reads the diagnosis and closes the tab gets no mark. That
-is the honest reading of the data available, and it is the stricter one: a mark
-the reader cannot see themselves earn is worse than no mark.
+**It used to require a submitted self-check as well, and that was wrong.** The
+mark read `lockedAt && submittedAt`, on the reasoning that "read to the end" is
+only provable by a reader who finished the whole sequence. But a reader who locked
+in, read the diagnosis, and closed the tab had read the incident, and the archive
+said otherwise — the mark denying the very thing it exists to record. The
+self-check scores an answer against a rubric; it is evidence of self-assessment,
+not of attention, and using it as a reading receipt made the archive stricter than
+the reader's own behaviour. Now `isResolved` is `isLocked`, and the narrower
+question it used to answer moved to where it belonged: `/streak` still counts
+submissions, so a streak day is still earned by finishing the self-check rather
+than by opening a page.
 
-The definition is nonetheless spelled out in both places, because it is not
-derivable. `submitSelfCheck` refuses an unlocked attempt, so a record this site
-wrote is always both; `isResolved` checks both anyway, since the record is
-user-writable and a hand-edited `submittedAt` beside a null `lockedAt` is not a
-state the archive should claim a reader reached.
+The two sets are read separately rather than derived from each other, which is the
+part worth keeping. `readResolvedAttempts` walks the index and returns every
+locked-in attempt for the archive's mark and its `unread` filter;
+`readCompletedAttempts` narrows that to the submitted ones for `/streak`. Before
+this change the streak read the archive's set and filtered out the unsubmitted, so
+the two were the same walk; now the archive's set is strictly wider, and one
+caller that reached for the wrong one would award a streak day for a page view.
+
+The index moved with it, and that needed a version bump rather than just a
+changed predicate. `syncIndex` derives membership from the record it is handed, so
+it follows the definition automatically — but the index is the *fast path*, and
+the fast path takes whatever it finds at face value. A returning reader's existing
+index names only the slugs they submitted, which under the new rule is a strictly
+smaller set than their records support, and every lock-in missing from it would
+have stayed unmarked forever. Incompleteness is not detectable from the outside:
+`readIndex` returns a populated list, so nothing downstream can tell a short index
+from a correct one.
+
+So the key is `p99:attempts:index:v2`. A stale index becomes a *missing* one, which
+is the single condition the repair path already handles — it enumerates the attempt
+records, which are the durable copy, and rebuilds — and `writeIndex` drops the old
+key rather than leaving it to rot beside the new one. The alternative was to walk
+every key on the origin on every read to find the gap, which is the cost the index
+exists to avoid.
 
 **The mark is a boolean prop, not a store subscription in each row.**
 `ListRow` and `GridCard` are shared with `/` (recent) and `/topics` (the
@@ -1476,7 +1502,7 @@ that hold nothing. Removal keeps "did this reader ever touch this incident" and
 "what is in it" the same question, answered by the same absence. The index is
 reconciled by handing `syncIndex` an empty attempt rather than by writing a
 second index path, because `syncIndex` already derives the slug's membership from
-whether the record it is given is submitted.
+whether the record it is given is resolved.
 
 The consequence worth naming is that the reset silently costs the reader two
 things they cannot get back — the streak day and the archive's `read · solved`

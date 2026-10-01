@@ -1,9 +1,9 @@
 /**
  * Per-incident attempt storage — DESIGN.md section 8.2.
  *
- * One record per incident under `p99:attempt:<slug>`, plus a `p99:attempts:index`
- * holding the slugs that have been self-checked, so `/streak` can find completed
- * work without enumerating every key.
+ * One record per incident under `p99:attempt:<slug>`, plus a `p99:attempts:index:v2`
+ * holding the slugs the reader has locked in, so the archive can find them
+ * without enumerating every key.
  *
  * Everything here is defensive by construction. localStorage is a user-writable,
  * cross-version, occasionally-corrupt string store: it throws in private-mode
@@ -31,7 +31,13 @@ export interface Attempt {
 }
 
 export const ATTEMPT_PREFIX = "p99:attempt:";
-export const ATTEMPT_INDEX_KEY = "p99:attempts:index";
+/**
+ * `:v2` because the index's membership rule changed from "self-check submitted" to
+ * "locked in" — see `writeIndex` for why a stale one cannot be detected from the
+ * outside and has to be made a miss instead.
+ */
+export const ATTEMPT_INDEX_KEY = "p99:attempts:index:v2";
+const LEGACY_ATTEMPT_INDEX_KEY = "p99:attempts:index";
 export const ATTEMPT_EVENT = "p99:attempt-change";
 
 /** Soft cap on the free-text answer. Enforced in the textarea, not here. */
@@ -61,21 +67,27 @@ export function isSubmitted(attempt: Attempt): boolean {
 }
 
 /**
- * Read to the end *and* the solution revealed — the one state the archive marks.
+ * Read to the end, with the solution revealed — the one state the archive marks.
  *
- * Deliberately conjunctive rather than a new field. `submitSelfCheck` refuses to
- * submit an unlocked attempt, so a record this site wrote cannot be submitted and
- * unlocked; both are still checked because the record is user-writable and a
- * hand-edited `submittedAt` beside a null `lockedAt` is not a state the archive
- * should claim a reader reached.
+ * A single timestamp rather than the pair it used to require. Lock-in is the
+ * moment both halves of "read it" become true at once: nothing below the form is
+ * in the DOM until it fires, and the reveal is what fires it. Requiring a
+ * submitted self-check on top meant a reader who locked in, read the diagnosis and
+ * closed the tab was recorded as never having read it — which is the one thing the
+ * mark is supposed to say, and it was false. The self-check scores the answer; it
+ * is not evidence of attention.
  *
- * This is the archive's read marker, and it needs no key of its own — the two
- * timestamps it reads are the same ones `/streak` already counts. A separate
- * `p99:read:<slug>` would have been a third copy of "this reader got to the end of
- * this incident", free to disagree with the other two.
+ * Still derived rather than stored, and still no key of its own. `lockedAt` is
+ * already written by the same button that reveals the solution, so a separate
+ * `p99:read:<slug>` would be a third copy of a fact the attempt record holds.
+ *
+ * Narrower than it was, in one direction only: the record is user-writable, so a
+ * hand-edited `lockedAt` on an attempt with no picks claims a read the reader may
+ * not have done. Accepted for the same reason the old pair was checked at all —
+ * the schema is a pacing device, not a security boundary (see the module note).
  */
 export function isResolved(attempt: Attempt): boolean {
-  return isLocked(attempt) && isSubmitted(attempt);
+  return isLocked(attempt);
 }
 
 /**
@@ -205,28 +217,46 @@ function writeAttempt(attempt: Attempt): void {
 }
 
 /**
- * The completed-attempt index, rebuilt from the single record we just wrote.
- * A submission is the only transition that can add or remove a slug, so this is
- * the only place the index needs touching.
+ * The resolved-attempt index, rebuilt from the single record we just wrote.
+ * Lock-in is the only transition that can add or remove a slug, so this is the
+ * only place the index needs touching.
  */
 function syncIndex(slug: string, attempt: Attempt): void {
-  const storage = safeStorage();
-  if (!storage) return;
-
   const current = readIndex();
   const has = current.includes(slug);
-  const should = isSubmitted(attempt);
+  const should = isResolved(attempt);
 
   if (has === should) return;
 
-  const next = should
-    ? [...current, slug]
-    : current.filter((item) => item !== slug);
+  writeIndex(
+    should ? [...current, slug] : current.filter((item) => item !== slug),
+  );
+}
 
+/**
+ * The one write path for the index, and the one place the pre-`:v2` key is
+ * dropped.
+ *
+ * The version suffix is a migration, not decoration. The index used to name
+ * *submitted* slugs and now names *locked-in* ones, and the fast path trusts
+ * whatever the index says — so a returning reader's existing index would be a
+ * strictly smaller set than their records support, and the lock-ins it is missing
+ * would never be marked read. Missing is not a state the repair path can detect:
+ * `readIndex` returns a populated list, so it is taken at face value.
+ *
+ * A fresh key makes the old one a miss, which is the one condition the repair path
+ * already handles — it enumerates the attempt records, which are the durable copy,
+ * and rebuilds. So the version bump converts "silently incomplete" into "rebuilt on
+ * first read", and the stale key is removed rather than left to rot beside it.
+ */
+function writeIndex(slugs: string[]): void {
+  const storage = safeStorage();
+  if (!storage) return;
   try {
-    storage.setItem(ATTEMPT_INDEX_KEY, JSON.stringify(next));
+    storage.setItem(ATTEMPT_INDEX_KEY, JSON.stringify(slugs));
+    storage.removeItem(LEGACY_ATTEMPT_INDEX_KEY);
   } catch {
-    /* index is an optimisation; `readCompleted` can rebuild it from the records */
+    /* index is an optimisation; `readResolvedAttempts` rebuilds it from the records */
   }
 }
 
@@ -260,44 +290,58 @@ function enumerateAttemptSlugs(): string[] {
 }
 
 function repairIndex(slugs: string[]): void {
-  const storage = safeStorage();
-  if (!storage) return;
-  try {
-    storage.setItem(ATTEMPT_INDEX_KEY, JSON.stringify(slugs));
-  } catch {
-    /* the records remain the source of truth; the index is only a fast path */
-  }
+  writeIndex(slugs);
 }
 
 /**
- * Every submitted attempt, keyed by slug.
+ * Every resolved attempt, keyed by slug.
  *
- * The index is the fast path: it names the completed slugs, so the common read is
+ * The index is the fast path: it names the resolved slugs, so the common read is
  * a handful of `getItem` calls rather than a walk of every key in localStorage
- * (which is O(all keys on the origin), not O(our keys).
+ * (which is O(all keys on the origin), not O(our keys)).
  *
  * When the index is missing entirely the records are enumerated instead and the
- * index is rebuilt, so clearing the index alone does not lose a reader's history.
- * The one case this cannot repair is a *partial* index — a slug that was
- * submitted while the index write failed, e.g. mid-quota-exhaustion. That is
- * accepted: an index write and an attempt write failing in the same breath means
- * storage is already unhealthy, and the attempt record is the durable copy.
+ * index is rebuilt, so clearing the index alone does not lose a reader's history,
+ * and so does the `:v2` bump in `ATTEMPT_INDEX_KEY` for readers arriving from the
+ * old membership rule. The one case this cannot repair is a *partial* index — a
+ * slug that was locked in while the index write failed, e.g. mid-quota-exhaustion.
+ * That is accepted: an index write and an attempt write failing in the same breath
+ * means storage is already unhealthy, and the attempt record is the durable copy.
  */
-export function readCompletedAttempts(): Map<string, Attempt> {
-  const completed = new Map<string, Attempt>();
+export function readResolvedAttempts(): Map<string, Attempt> {
+  const resolved = new Map<string, Attempt>();
 
   const indexed = readIndex();
   if (indexed.length === 0) {
     for (const slug of enumerateAttemptSlugs()) {
       const attempt = readAttempt(slug);
-      if (isSubmitted(attempt)) completed.set(slug, attempt);
+      if (isResolved(attempt)) resolved.set(slug, attempt);
     }
-    repairIndex([...completed.keys()]);
-    return completed;
+    repairIndex([...resolved.keys()]);
+    return resolved;
   }
 
   for (const slug of indexed) {
     const attempt = readAttempt(slug);
+    if (isResolved(attempt)) resolved.set(slug, attempt);
+  }
+
+  return resolved;
+}
+
+/**
+ * Every self-checked attempt, keyed by slug — the narrower set `/streak` counts.
+ *
+ * A separate read rather than a filter the caller applies, because the two sets
+ * answer different questions and only one of them is a superset. The archive asks
+ * "has this reader been shown the answer" (lock-in), while a streak day asks "did
+ * this reader finish scoring themselves against it" (submission). Deriving the
+ * streak from the archive's set would quietly award a day for opening an incident.
+ */
+export function readCompletedAttempts(): Map<string, Attempt> {
+  const completed = new Map<string, Attempt>();
+
+  for (const [slug, attempt] of readResolvedAttempts()) {
     if (isSubmitted(attempt)) completed.set(slug, attempt);
   }
 
@@ -380,8 +424,8 @@ export function submitSelfCheck(slug: string): void {
  *
  * The key is removed rather than overwritten with an empty attempt, so an incident
  * the reader has genuinely never opened leaves nothing behind and
- * `enumerateAttemptSlugs` cannot resurrect it into `/streak`. The index is
- * reconciled from an empty attempt because `syncIndex` reads the submission state
+ * `enumerateAttemptSlugs` cannot resurrect it into the archive. The index is
+ * reconciled from an empty attempt because `syncIndex` reads the resolved state
  * off the record it is handed, and a removal is what drops the slug from it.
  *
  * Not undoable. The reader's own words are the one thing this site cannot put
