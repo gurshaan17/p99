@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { topicMeta, type Incident } from "@/lib/incidents";
-import { TagMark } from "@/components/ui/badge";
+import { TagMark, SolvedBadge } from "@/components/ui/badge";
 
 /**
  * Grid card — DESIGN.md section 7.4.
@@ -13,8 +13,21 @@ import { TagMark } from "@/components/ui/badge";
  * asked if you opened it. The previous version drew a hardcoded bar chart keyed
  * off difficulty, which was a picture of nothing (section 11: a panel must carry
  * information, not decoration).
+ *
+ * `solved` carries the reader's own mark into this view too, for the reason
+ * section 8.4 gives: the two views are the same archive, and a mark that only
+ * existed in one of them would make the toggle change which incidents you have
+ * finished. It sits in the metadata footer beside the date rather than in the
+ * preview, because the preview is the incident's own voice and the footer is the
+ * card's metadata.
  */
-export function GridCard({ incident }: { incident: Incident }) {
+export function GridCard({
+  incident,
+  solved = false,
+}: {
+  incident: Incident;
+  solved?: boolean;
+}) {
   const topic = topicMeta(incident.topic);
 
   return (
@@ -46,6 +59,9 @@ export function GridCard({ incident }: { incident: Incident }) {
               : topic.label}
           </span>
         </span>
+        {/* The tag column above is the one that truncates, so a marked card loses
+            tag text rather than the date or the mark. */}
+        {solved ? <SolvedBadge /> : null}
         <time dateTime={incident.publishedAt} className="shrink-0 tabular-nums">
           {incident.publishedAt.slice(5).replace("-", "/")}
         </time>

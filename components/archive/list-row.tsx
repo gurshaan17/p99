@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { topicMeta, type Incident } from "@/lib/incidents";
-import { TagMark, DifficultyBadge } from "@/components/ui/badge";
+import { TagMark, DifficultyBadge, SolvedBadge } from "@/components/ui/badge";
 
 /**
  * Archive list row — DESIGN.md section 7.3.
@@ -16,8 +16,21 @@ import { TagMark, DifficultyBadge } from "@/components/ui/badge";
  * slot, where they answer "which of these do I care about" without becoming
  * navigation. The schema has no `description` field, and a row with a title and
  * nothing else reads as broken.
+ *
+ * `solved` is a prop rather than a read of the attempt store from in here, for
+ * two reasons. The store is per-slug, so a row subscribing to it would mean one
+ * subscription and one localStorage read per row per write; and this component is
+ * also the recent list on `/` and the partition on `/topics`, where the question
+ * "have *you* finished this" is not being asked. Optional and off by default,
+ * which is also what keeps those two pages unchanged by it.
  */
-export function ListRow({ incident }: { incident: Incident }) {
+export function ListRow({
+  incident,
+  solved = false,
+}: {
+  incident: Incident;
+  solved?: boolean;
+}) {
   const topic = topicMeta(incident.topic);
 
   return (
@@ -46,6 +59,13 @@ export function ListRow({ incident }: { incident: Incident }) {
         )}
 
         <span className="ml-auto flex shrink-0 items-center gap-2">
+          {/*
+            Ahead of the difficulty badge, so the reader's own state reads first
+            and the one that belongs to the incident is the last thing they pass.
+            It stays at every width — the date is the only other thing in this group
+            that hides, and a mark that vanished on a phone would mark nothing.
+          */}
+          {solved ? <SolvedBadge /> : null}
           <DifficultyBadge level={incident.difficulty} />
           <time
             dateTime={incident.publishedAt}

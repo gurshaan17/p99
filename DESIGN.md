@@ -800,6 +800,27 @@ because they answer different questions — "show me every bloat incident" and
 "show me the incidents about storage engines" have different answers. Keeping
 them apart is also what lets each incident sit under exactly one section.
 
+**The archive shows the reader's own progress.** An incident this reader has read
+to the end *and* revealed the solution for is marked `read · solved`, in accent,
+in both views. The definition is section 8.2's record: an attempt with both a
+`lockedAt` and a `submittedAt`, i.e. one that got through the whole
+prediction → reveal → self-score sequence. Nothing new is written to
+`localStorage` to support it.
+
+The mark is worded, never a tick and never opacity: section 13 forbids carrying a
+state by colour alone, and this row already carries a difficulty badge, a tag
+list and a date. Accent is reserved for it — section 1.5's "selected or
+highlighted" case, and nothing else in the archive row is tinted, so it cannot be
+mistaken for difficulty. It sits ahead of the difficulty badge (list) or in the
+metadata footer (grid), and it renders at every width: the date is the only thing
+in that group that hides.
+
+A third filter axis, `Progress`, offers `all` and `unread`. `unread` is the useful
+direction: hiding what is finished is a queue, and hiding what is not is a backlog
+that on this site is every future post. The other two axes describe the incident;
+this one describes the reader, which is why it is the only one whose result
+changes without the archive changing.
+
 ### 8.5 Email signup
 
 Inline in the promo panel: desktop input + button, mobile stacked. After success, replace the form with a quiet confirmation line. No modal signup.
@@ -1271,6 +1292,46 @@ which is small enough to serve as a substitute; and the file grows by roughly 90
 bytes per incident against the spec's advice to keep it inside a context window.
 Both are fine at five incidents and are a deliberate trim decision when they are
 not, with `/archive` as the escape hatch.
+
+**"Read" is a submitted self-check, and no new localStorage key was added for
+it.** The archive marks incidents the reader has finished (section 8.4), which
+sounds like it wants a `p99:read:<slug>` written by a scroll listener on
+`/q/[slug]`. It does not, and the reason is that the two things the mark means —
+read to the end, and revealed the solution — are already the two timestamps
+section 8.2 stores, because the only way past them is to submit a self-check on a
+locked attempt. A third record would have been a third copy of "this reader got
+to the end of this incident", free to disagree with the other two, and it would
+have made the archive's marks and `/streak`'s count answer different questions
+about the same evening.
+
+The cost is that "read" means read *and* scored rather than read alone. A reader
+who opens an incident, reads the diagnosis and closes the tab gets no mark. That
+is the honest reading of the data available, and it is the stricter one: a mark
+the reader cannot see themselves earn is worse than no mark.
+
+The definition is nonetheless spelled out in both places, because it is not
+derivable. `submitSelfCheck` refuses an unlocked attempt, so a record this site
+wrote is always both; `isResolved` checks both anyway, since the record is
+user-writable and a hand-edited `submittedAt` beside a null `lockedAt` is not a
+state the archive should claim a reader reached.
+
+**The mark is a boolean prop, not a store subscription in each row.**
+`ListRow` and `GridCard` are shared with `/` (recent) and `/topics` (the
+partition), and the attempt store is keyed per slug — so subscribing in each row
+would mean one `localStorage` read per row per write, and would spread a single
+piece of state across four files. `ArchiveView` already owns client state as the
+filter and view owner, so `useResolvedSlugs` subscribes once there and the rows
+take a plain `solved` prop, optional and off by default. Off by default is what
+keeps `/` and `/topics` unchanged: on those two pages the question "have *you*
+finished this" is not the question being asked. The set is computed and cached
+against its sorted slug list for the same reason `StreakRecord` caches its
+numbers — a `Set` snapshot has to be referentially stable or React loops.
+
+Server rendering has no localStorage, so every row starts unmarked and a
+returning reader's marks arrive on hydration. That is accepted rather than
+worked around: marking rows on the server would mean rendering the archive per
+reader, and a badge appearing where a row already stood is not a layout shift
+worth preventing.
 
 ---
 

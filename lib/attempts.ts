@@ -60,6 +60,24 @@ export function isSubmitted(attempt: Attempt): boolean {
   return attempt.submittedAt !== null;
 }
 
+/**
+ * Read to the end *and* the solution revealed — the one state the archive marks.
+ *
+ * Deliberately conjunctive rather than a new field. `submitSelfCheck` refuses to
+ * submit an unlocked attempt, so a record this site wrote cannot be submitted and
+ * unlocked; both are still checked because the record is user-writable and a
+ * hand-edited `submittedAt` beside a null `lockedAt` is not a state the archive
+ * should claim a reader reached.
+ *
+ * This is the archive's read marker, and it needs no key of its own — the two
+ * timestamps it reads are the same ones `/streak` already counts. A separate
+ * `p99:read:<slug>` would have been a third copy of "this reader got to the end of
+ * this incident", free to disagree with the other two.
+ */
+export function isResolved(attempt: Attempt): boolean {
+  return isLocked(attempt) && isSubmitted(attempt);
+}
+
 /* ------------------------------------------------------------------ *
  * Reads
  * ------------------------------------------------------------------ */
