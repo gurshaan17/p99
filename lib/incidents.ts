@@ -46,11 +46,20 @@ export function publishedIncidents(now = new Date()): Incident[] {
   return incidents.filter((incident) => isPublished(incident, now));
 }
 
-/** The featured incident for Today — the most recently published one. */
-export const todaysIncident = incidents[0];
+/**
+ * The featured incident for Today — the most recently published one.
+ *
+ * Filtered, unlike `recentIncidents`: a scheduled incident sorts to the front of
+ * `incidents` while its date is still in the future, and featuring it here would
+ * publish tomorrow's post on the home page today. `recentIncidents` is sliced off
+ * the same filtered list, so the featured slot and the recents agree.
+ */
+export const todaysIncident = publishedIncidents()[0] ?? incidents[0];
 
 export function recentIncidents(count: number): Incident[] {
-  return incidents.filter((i) => i.slug !== todaysIncident.slug).slice(0, count);
+  return publishedIncidents()
+    .filter((i) => i.slug !== todaysIncident.slug)
+    .slice(0, count);
 }
 
 /**
