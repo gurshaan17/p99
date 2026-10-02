@@ -22,5 +22,5 @@ export const ORIGIN = (
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
-      : "https://p99.vercel.app"
+      : "https://p99.online"
 ).replace(/\/$/, "");
