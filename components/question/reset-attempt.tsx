@@ -16,7 +16,7 @@ import { DangerAction } from "@/components/ui/button";
  * reader thinks in — "I want to do that one again" — and a row of clear buttons
  * would make them choose which half of their own answer they meant.
  *
- * It sits at the end of the flow, after the score and after the three things to
+ * It sits at the end of the flow, after the score and after the things to
  * remember, for two reasons. Everything it destroys is above it, so a reader who
  * wants it has already seen all of it; and it is the only control on the page
  * whose effect is not local to where it sits, which is what belongs after the

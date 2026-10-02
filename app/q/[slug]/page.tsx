@@ -140,8 +140,8 @@ export default async function IncidentPage({
           reason — these are the bookends of the article, and numbering one of them
           would put a `07` on the score and imply it belongs to the rubric.
 
-          Gated through `RememberGate` because these three lines are the incident's
-          lesson written generally, and a lesson is still the answer.
+          Gated through `RememberGate` because these closing lines are the
+          incident's lesson written generally, and a lesson is still the answer.
         */}
         <RememberGate incident={incident} />
 

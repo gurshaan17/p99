@@ -96,12 +96,17 @@ export function Fix({ text, index = "05" }: { text: string; index?: string }) {
 }
 
 /**
- * The three things to remember — DESIGN.md section 8.2.
+ * The things to remember — DESIGN.md section 8.2.
  *
  * A closing list, numbered, after the fix. It repeats nothing the fix says; the
  * fix is what to do about *this* incident and these are what generalises past it.
  * A reader who has the fix open on a screen six months from now will not have this
  * list, and that is the point — the fix is the thing that rots.
+ *
+ * The label does not count them. It used to say "three", which was true when every
+ * incident carried three and stopped being true the first one carried five — a
+ * heading that asserts a number the list does not have to honour is a small lie
+ * that only the content can catch.
  *
  * Presentational and ungated. The gate is the caller's, because the two callers
  * disagree: `Reveal` on the home page is already behind its own button, and the
@@ -112,7 +117,7 @@ export function Remember({ items, index }: { items: string[]; index?: string }) 
   if (items.length === 0) return null;
 
   return (
-    <Section index={index ?? "08"} label="Three things to remember">
+    <Section index={index ?? "08"} label="Things to remember">
       <ol className="flex flex-col">
         {items.map((item, i) => (
           <li

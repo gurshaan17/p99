@@ -6,7 +6,7 @@ import { isLocked } from "@/lib/attempts";
 import { Remember } from "./incident";
 
 /**
- * The three things to remember, behind the lock-in — DESIGN.md sections 8.2, 15a.
+ * The things to remember, behind the lock-in — DESIGN.md sections 8.2, 15a.
  *
  * `Remember` itself is ungated, because the home page's `Reveal` already puts it
  * behind its button and does not need a second gate. On the article it does, and

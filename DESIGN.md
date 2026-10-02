@@ -740,7 +740,7 @@ Single-column reading area, approximately 720px maximum width. Sections, each se
 5. prediction form
 6. solution reveal
 7. self-score
-8. three things to remember
+8. things to remember
 
 #### The attempt flow
 
@@ -1338,11 +1338,15 @@ at one picture, and which a browser picks is not worth leaving to chance. The
 than left as dead weight; the `app/` one stays, because that one is the
 convention.
 
-**"Three things to remember" is a closing section, and it is gated.** The last
+**"Things to remember" is a closing section, and it is gated.** The last
 list on the article, after the score, numbered, unindexed — the score above takes
 no index either, and these are the article's bookends, so numbering one of them
 would imply it belongs to the rubric. It repeats nothing the fix says: the fix is
 what to do about *this* incident, and these are what generalises past it.
+
+The label names the section rather than counting it. It read "three things to
+remember" until the first incident carried five, and a heading that asserts a
+count the content is free to contradict is a lie only the content can catch.
 
 It was ungated at first, on the reasoning that a lesson is not an answer. That
 reasoning is wrong, and the cache-stampede incident is why: "a cache that is 98%
