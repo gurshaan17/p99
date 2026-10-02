@@ -712,6 +712,31 @@ Focus uses the global focus ring. Avoid colored glowing inputs.
 
 Centered dialog, restrained card radius, thin border, page background, subtle backdrop. Results use the same archive-row language; grouped labels use mono/micro typography. Keyboard navigation must be real. `Esc` closes.
 
+### 7.12 Tag search field
+
+A 32px `rounded-full` text field in the archive filter row, matching the toolbar
+controls beside it: `bg-page`, `border-line`, `text-body`, leading search icon in
+`text-ink-3` at 3.5px, and a 24px circular clear button in `text-ink-3` that
+appears only once there is text to clear. 11rem wide, so it wraps rather than
+crowding the two menus next to it at 375px. Marks `data-touch-target`, because a
+32px control is under the 40px minimum.
+
+Placeholder reads `Search tags`, not `Search`: the field searches the tag
+vocabulary and nothing else, and a reader who assumes it searches titles will
+report it broken.
+
+Suggestions are a `rounded-card` panel on `bg-page` with `shadow-float`, same
+surface as the filter menus, listing `tag` plus its incident count in
+`font-mono text-micro tabular-nums`. `Enter` takes the highlighted suggestion,
+`↑`/`↓` move the highlight and wrap, `Esc` closes the menu and only clears the text
+once the menu is closed. The field is a `combobox` with `aria-activedescendant` so
+the highlight is announced, and a polite live region states the result, since
+filtering a list by typing is otherwise silent.
+
+Options pin themselves on click and the pinned tag stays in the field as its own
+text, so a filter can be edited rather than re-picked, and the `×` returns to
+unfiltered.
+
 ---
 
 ## 8. Product-specific patterns
@@ -889,7 +914,8 @@ scoreboard.
 
 ### 8.4 Archive
 
-Default: list view, compact filter row, grouped section headers, tag/difficulty/sort controls.
+Default: list view, compact filter row, grouped section headers, a tag search field
+plus difficulty and sort controls.
 
 Optional: grid view; persist view choice in `localStorage`.
 
@@ -898,6 +924,22 @@ Optional: grid view; persist view choice in `localStorage`.
 because they answer different questions — "show me every bloat incident" and
 "show me the incidents about storage engines" have different answers. Keeping
 them apart is also what lets each incident sit under exactly one section.
+
+**The tag axis is typed, not browsed.** It was a menu listing every tag in use, and
+the vocabulary outgrew it: a listbox is fine at eight options and useless at forty,
+where the reader scrolls looking for a word they already know. The field matches a
+prefix or an infix of a tag, ranks exact-then-prefix-then-rest with the busier tag
+first inside each group, and filters on every match at once — an OR across an
+incident's tags, so `postgres` surfaces every Postgres incident whether or not
+those also carry `autovacuum`. Choosing a suggestion pins that one tag, which is the
+only way to narrow when the typed word is an infix of several tags, the way `cache`
+is of `cache-stampede` and `cache-aside`.
+
+A search that matches nothing is not an empty archive: it leaves the list alone and
+says which tag it looked for, because a mistyped tag should not cost the reader the
+page. The empty state belongs to the filters that can legitimately match nothing.
+Suggestions are capped (`MAX_SUGGESTIONS`) so the menu cannot become the list it
+replaced. See section 7.12 for the control.
 
 **The archive shows the reader's own progress.** An incident this reader has been
 shown the solution for is marked `read · solved`, in accent, in both views. The
@@ -958,7 +1000,7 @@ moves per reader, which is the bug this section exists to prevent.
 
 **Filtering is the contract; the cron is only the clock.** Every surface that
 renders reads `publishedIncidents()` — home, archive, `/topics`, the incident page,
-the command palette, the sidebar counts, the archive's tag chips — and
+the command palette, the sidebar counts, the archive's tag search — and
 `getIncident` returns nothing for an unpublished slug, so `/q/<scheduled-slug>`
 404s and its metadata is empty. A scheduled post is indistinguishable from one that
 does not exist: an archive that lists tomorrow's title, a sidebar count that

@@ -11,11 +11,7 @@ export { incidents, TOPICS };
 export type Difficulty = Incident["difficulty"];
 export type RubricDim = Incident["rubric"][number]["dim"];
 
-export const DIFFICULTIES: readonly Difficulty[] = [
-  "easy",
-  "medium",
-  "hard",
-];
+export const DIFFICULTIES: readonly Difficulty[] = ["easy", "medium", "hard"];
 
 export const bySlug = new Map(incidents.map((i) => [i.slug, i]));
 
@@ -205,6 +201,40 @@ export const tagCounts = (() => {
     .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 })();
 
+/**
+ * Tags matching a free-text needle, best match first — the archive's tag search.
+ *
+ * A list of every tag in use stopped being browsable once the vocabulary passed a
+ * few dozen entries: a dropdown is fine at eight and unusable at forty, and the
+ * tag a reader wants is almost always a word they already know rather than one they
+ * are browsing for. So the needle matches a *prefix or an infix* of a tag, and the
+ * ranking is what makes a partial word useful — an exact hit first, then tags that
+ * start with the needle, then the rest, with the busier tag first inside each group
+ * so the suggestion most likely to be wanted is the first one under the caret.
+ *
+ * Substring rather than prefix-only because the vocabulary is hyphenated: typing
+ * `stampede` should find `cache-stampede`, and prefix matching would say no.
+ *
+ * Empty needle returns nothing rather than everything. "No filter" is the caller's
+ * decision to make, and a function that cannot distinguish them is one that gets
+ * the empty-string case wrong in the direction that shows a reader the whole site
+ * when they asked for nothing.
+ */
+export function matchTags(needle: string): { tag: string; count: number }[] {
+  const trimmed = needle.trim().toLowerCase();
+  if (!trimmed) return [];
+  const rank = (tag: string) =>
+    tag === trimmed ? 0 : tag.startsWith(trimmed) ? 1 : 2;
+  return tagCounts
+    .filter(({ tag }) => tag.includes(trimmed))
+    .sort(
+      (a, b) =>
+        rank(a.tag) - rank(b.tag) ||
+        b.count - a.count ||
+        a.tag.localeCompare(b.tag),
+    );
+}
+
 export const tags = tagCounts.map((t) => t.tag);
 
 export function incidentsByTag(tag: string): Incident[] {
@@ -297,9 +327,7 @@ function shiftDays(date: Date, by: number): Date {
 const streak = (() => {
   // Every published incident's own day, which is a publish-day key by
   // construction — so a cell cannot be `done` for a post that has not gone out.
-  const published = new Set(
-    publishedIncidents().map((i) => i.publishedAt),
-  );
+  const published = new Set(publishedIncidents().map((i) => i.publishedAt));
 
   if (published.size === 0) {
     return { grid: [], weeks: 0, from: "", to: "", days: 0 };
@@ -312,7 +340,8 @@ const streak = (() => {
   const to = publishDayKey();
   const today = atMidnight(to);
 
-  const mondayOf = (date: Date) => shiftDays(date, -((date.getUTCDay() + 6) % 7));
+  const mondayOf = (date: Date) =>
+    shiftDays(date, -((date.getUTCDay() + 6) % 7));
   const start = mondayOf(firstDay);
   const lastWeek = mondayOf(today);
 

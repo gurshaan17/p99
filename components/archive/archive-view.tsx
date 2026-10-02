@@ -1,16 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { DIFFICULTIES, type Incident } from "@/lib/incidents";
-import { tags } from "@/lib/incidents";
+import { useMemo, useState } from "react";
+import {
+  DIFFICULTIES,
+  matchTags,
+  tagCounts,
+  type Incident,
+} from "@/lib/incidents";
 import { useResolvedSlugs } from "@/hooks/useResolvedSlugs";
 import { ArchiveFilter } from "@/components/archive/filters";
+import { TagSearch } from "@/components/archive/tag-search";
 import { ViewToggle, useArchiveView } from "@/components/archive/view-toggle";
 import { ListRow } from "@/components/archive/list-row";
 import { GridCard } from "@/components/archive/grid-card";
 
 /**
- * Archive body — DESIGN.md sections 7.1, 7.3, 7.4, 7.6.
+ * Archive body — DESIGN.md sections 7.1, 7.3, 7.4, 7.6, 7.12, 8.4.
  *
  * Client because filter and view state live here. The list/grid switch sits with
  * the filters rather than in the global topbar: it only means something on a
@@ -22,20 +27,48 @@ import { GridCard } from "@/components/archive/grid-card";
  * progress marks: the server has no localStorage, so every row starts unmarked and
  * a returning reader's own incidents get their mark on hydration.
  *
- * The tag filter is an OR across an incident's tags: filtering to `postgres`
- * should surface every Postgres incident even though those incidents also carry
- * `autovacuum` or `bloat`.
+ * The tag axis is a search field rather than a menu — the vocabulary outgrew a
+ * listbox. Two behaviours are worth stating because they are the ones a reader can
+ * feel: the match is an OR across an incident's tags, so typing `postgres` surfaces
+ * every Postgres incident even where those also carry `autovacuum` or `bloat`; and
+ * a tag chosen from the suggestions pins to that one tag exactly, which is the only
+ * way to narrow when the word typed is an infix of several tags. A search that
+ * matched nothing leaves the list alone rather than emptying it — see the empty
+ * state below, which is reserved for the filters that can legitimately match
+ * nothing.
+ *
+ * The matches come from `matchTags`, over the same published `tagCounts` the old
+ * chip list was built from, so a tag that exists only on an incident that is not
+ * live yet cannot be offered as a filter that returns nothing.
  */
 export function ArchiveView({ incidents }: { incidents: Incident[] }) {
   const [view, setView] = useArchiveView();
-  const [tag, setTag] = useState<TagFilter>("all");
+  const [tagQuery, setTagQuery] = useState("");
+  const [pinnedTag, setPinnedTag] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<DifficultyFilter>("all");
   const [progress, setProgress] = useState<ProgressFilter>("all");
   const resolved = useResolvedSlugs();
 
+  const tagMatches = useMemo(
+    () =>
+      pinnedTag
+        ? tagCounts.filter((entry) => entry.tag === pinnedTag)
+        : matchTags(tagQuery),
+    [pinnedTag, tagQuery],
+  );
+
+  // A Set because this is the innermost test of the predicate and it runs once per
+  // incident per keystroke; `includes` over an array would be the same result a few
+  // times slower for no gain.
+  const activeTags = useMemo(
+    () => new Set(tagMatches.map((entry) => entry.tag)),
+    [tagMatches],
+  );
+  const filteringTags = activeTags.size > 0;
+
   const filtered = incidents.filter(
     (i) =>
-      (tag === "all" || i.tags.includes(tag)) &&
+      (!filteringTags || i.tags.some((tag) => activeTags.has(tag))) &&
       (difficulty === "all" || i.difficulty === difficulty) &&
       (progress === "all" || !resolved.has(i.slug)),
   );
@@ -43,11 +76,19 @@ export function ArchiveView({ incidents }: { incidents: Incident[] }) {
   return (
     <div className="flex flex-col gap-block">
       <div className="flex flex-wrap items-center gap-item">
-        <ArchiveFilter
-          label="Tag"
-          options={["all", ...tags] as const}
-          value={tag}
-          onChange={setTag}
+        {/*
+          The tag axis, and the only control here that takes free text. It goes first
+          because it is the one a reader reaches for by typing rather than by
+          pointing, and a field that follows two menus is a field that gets skipped.
+        */}
+        <TagSearch
+          matches={tagMatches}
+          value={tagQuery}
+          pinnedTag={pinnedTag}
+          resultCount={filtered.length}
+          totalCount={incidents.length}
+          onValueChange={setTagQuery}
+          onPin={setPinnedTag}
         />
         <ArchiveFilter
           label="Level"
@@ -105,7 +146,6 @@ export function ArchiveView({ incidents }: { incidents: Incident[] }) {
   );
 }
 
-type TagFilter = "all" | (typeof tags)[number];
 type DifficultyFilter = "all" | (typeof DIFFICULTIES)[number];
 type ProgressFilter = (typeof PROGRESS_FILTERS)[number];
 
