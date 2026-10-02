@@ -20,10 +20,15 @@ export const metadata: Metadata = {
 
 /**
  * The grid reads the wall clock so a run can visibly break; without a rebuild a
- * day that published nothing would never appear. Daily revalidation is the price
- * of that, and it is a literal because Next has to statically analyse it.
+ * day that published nothing would never appear. ISR is the price of that, and it
+ * is a literal because Next has to statically analyse it.
+ *
+ * Hourly rather than daily: the same window as every other incident page, so
+ * there is one revalidation rule on the site instead of two. The publish cron
+ * revalidates this at `PUBLISH_CRON` anyway, so in the ordinary case the grid
+ * turns over on the same minute the post does.
  */
-export const revalidate = 86400;
+export const revalidate = 3600;
 
 const TONE = {
   done: "bg-accent-ink",
@@ -33,8 +38,9 @@ const TONE = {
 
 /**
  * Fixed locale and time zone so the label is identical wherever the page is
- * built. The keys are local-calendar dates, so they are read back as UTC to
- * avoid re-reading them as UTC the day before.
+ * built. The keys are UTC publish-day keys, so they are read back as UTC rather
+ * than being re-read in the build machine's timezone — a local parse would put
+ * the west-coast window a day early.
  */
 const DAY = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",

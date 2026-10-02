@@ -42,6 +42,7 @@ npm run lint       # eslint
 | --- | --- | --- |
 | `UPSTASH_REDIS_REST_URL` | for `/api/subscribe` | Redis endpoint backing the rate limiter |
 | `UPSTASH_REDIS_REST_TOKEN` | for `/api/subscribe` | Redis token |
+| `CRON_SECRET` | in production | Bearer token Vercel's cron sends to `/api/revalidate` |
 | `VERCEL_PROJECT_PRODUCTION_URL` | auto on Vercel | Canonical origin (canonical URLs, RSS, OG tags) |
 | `VERCEL_URL` | auto on Vercel | Fallback origin, overridden by the above |
 
@@ -56,7 +57,7 @@ simply stop rate limiting rather than 500-ing. See `lib/redis.ts`.
 
 ```text
 app/                  routes — /, /archive, /topics, /q/[slug], /streak, /about,
-                      plus /rss.xml, /llms.txt, /api/subscribe
+                      plus /rss.xml, /llms.txt, /api/revalidate, /api/subscribe
 components/
   shell/              frame, sidebar, topbar, mobile nav, search, command palette
   question/           the incident reader: picks, reveal, rubric, remember-gate
@@ -95,7 +96,7 @@ The `Incident` interface is in `content/incidents/types.ts`:
 | --- | --- |
 | `slug` | URL segment, `/q/<slug>` |
 | `title` | One sentence describing the failure, not the fix |
-| `publishedAt` | ISO date; **an incident dated in the future is hidden until that date** |
+| `publishedAt` | ISO date; **an incident dated in the future stays hidden until 02:00 IST on that date** |
 | `difficulty` | `easy` \| `medium` \| `hard` |
 | `topic` | Exactly one of `caching` \| `databases` \| `runtime` \| `platform` |
 | `tags` | Fine-grained; used for filtering and badges, never as a section |
@@ -112,6 +113,39 @@ The `Incident` interface is in `content/incidents/types.ts`:
 `rubric` and `remember` are deliberately separate: the rubric scores a person's
 answer and is self-checked, while `remember` is the compressed lesson and has
 nothing to self-score.
+
+### Scheduled publishing
+
+An incident dated in the future is not live yet, and it stays invisible until
+**02:00 IST** on its `publishedAt` day — 20:30 UTC the evening before, because IST
+is UTC+05:30. The instant lives in one place, `publishDayKey` in
+`lib/incidents.ts`, and everything else derives from it.
+
+Three things make that work:
+
+- **Filtering.** Every rendering surface reads `publishedIncidents()`, and
+  `getIncident` returns nothing for an unpublished slug — so a scheduled incident
+  is absent from the home page, the archive, `/topics`, the sidebar counts, the
+  tag chips, the command palette, `/rss.xml`, `/llms.txt`, and `/q/<slug>` 404s
+  with no metadata. `DESIGN.md` section 8.6 has the reasoning; the rule is that no
+  surface may read the raw registry.
+- **ISR.** `/`, `/archive`, `/topics`, `/streak` and `/q/[slug]` set
+  `revalidate = 3600`. That is the net: a missed revalidation costs an hour.
+- **The cron.** `vercel.json` calls `/api/revalidate` at `30 20 * * *` — 20:30
+  UTC, which is 02:00 IST — marking the root layout stale so each page re-renders
+  against the new clock. Vercel sends `Authorization: Bearer $CRON_SECRET`;
+  without that variable set the endpoint only answers requests carrying
+  `VERCEL=1`, which is Vercel's own infrastructure.
+
+Changing the publish time means editing `PUBLISH_LOCAL_MINUTE_OF_DAY` and the
+schedule in `vercel.json` together — Vercel reads that file before any of this
+code runs, so nothing can check they agree. `PUBLISH_CRON` in `lib/incidents.ts`
+carries the same string for the response body and the docs.
+
+A slug dated tomorrow is not in the build's `generateStaticParams` list, which is
+why `dynamicParams` stays at its default: the route renders on demand once the
+instant passes, and `getIncident` decides whether that render is the article or a
+404.
 
 ### Writing an incident
 

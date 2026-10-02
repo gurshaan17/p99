@@ -4,8 +4,23 @@ import { useCallback, useEffect, type Dispatch, type SetStateAction } from "reac
 import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
 import { Search } from "lucide-react";
-import { incidents, topicMeta } from "@/lib/incidents";
+import { publishedIncidents, topicMeta } from "@/lib/incidents";
 import { nav, topicNav } from "@/lib/nav";
+
+/**
+ * The published set, resolved once in the browser.
+ *
+ * Filtering here rather than taking a filtered prop is what keeps a scheduled
+ * incident's title out of the palette's items and out of the keyboard shortcut's
+ * random pick. `publishDayKey` reads no local timezone, so this returns the same
+ * answer in the browser as it did on the server that prerendered the page, and
+ * the two cannot drift by where the reader happens to be.
+ *
+ * Evaluated at module load, so a tab left open across the publish instant picks
+ * up the day's post on the next reload rather than live. A timer would fix that
+ * and cost a re-render of a closed palette to do it.
+ */
+const liveIncidents = publishedIncidents();
 
 /**
  * Search scoring — replaces cmdk's `defaultFilter`.
@@ -157,7 +172,7 @@ export function CommandPalette({
   // ⌘/Ctrl+E jumps to a random incident (section 7.1).
   const surpriseMe = useCallback(() => {
     const pick =
-      incidents[Math.floor(Math.random() * incidents.length)];
+      liveIncidents[Math.floor(Math.random() * liveIncidents.length)];
     if (pick) router.push(`/q/${pick.slug}`);
   }, [router]);
 
@@ -206,7 +221,7 @@ export function CommandPalette({
         </Group>
 
         <Group heading="Incidents">
-          {incidents.map((incident) => (
+          {liveIncidents.map((incident) => (
             <Row
               key={incident.slug}
               value={`${incident.title} ${topicMeta(incident.topic).label} ${incident.tags.join(" ")} ${incident.slug}`}

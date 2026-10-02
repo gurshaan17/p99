@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getIncident, incidents, topicMeta } from "@/lib/incidents";
+import {
+  getIncident,
+  publishedIncidents,
+  topicMeta,
+} from "@/lib/incidents";
 import { ALTERNATE_TYPES } from "@/lib/metadata";
 import {
   Constraints,
@@ -19,10 +23,33 @@ import { ResetAttempt } from "@/components/question/reset-attempt";
 import { TagBadge, DifficultyBadge } from "@/components/ui/badge";
 import { GhostLink } from "@/components/ui/button";
 
-/** All incidents are known at build time, so every route is prerendered. */
+/**
+ * Prerender every incident that is already published; leave the scheduled ones
+ * out.
+ *
+ * A slug that is not in this list is still reachable — `dynamicParams` defaults
+ * to true, so the page renders on demand and `notFound()` decides — because a
+ * post dated tomorrow is not in the *build's* list either, and setting
+ * `dynamicParams = false` would 404 it until the next deploy, which is the one
+ * thing a schedule cannot do.
+ *
+ * So the page renders twice over its life: once as a prerendered artifact at
+ * build time if it was already live, and once on first request after its publish
+ * instant if it was not. Both paths run the same `getIncident`, which is the
+ * filter.
+ */
 export function generateStaticParams() {
-  return incidents.map((incident) => ({ slug: incident.slug }));
+  return publishedIncidents().map((incident) => ({ slug: incident.slug }));
 }
+
+/**
+ * The hourly net under the publish cron — DESIGN.md section 8.6.
+ *
+ * The cron at `PUBLISH_CRON` is what actually flips the day; this is what
+ * makes a missed cron cost an hour rather than lasting until the next deploy.
+ * A literal, because Next statically analyses the value.
+ */
+export const revalidate = 3600;
 
 export async function generateMetadata({
   params,
@@ -30,6 +57,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  // `getIncident` is the published view, so an unpublished slug gets no title and
+  // no description — a scheduled post must not be announced by its metadata.
   const incident = getIncident(slug);
   if (!incident) return {};
   return {
@@ -48,6 +77,11 @@ export default async function IncidentPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  // A slug that does not exist and a slug that is not published yet both land
+  // here, and both 404. That is deliberate: a 404 for a scheduled incident is the
+  // only answer that does not turn the archive into a preview of what is coming,
+  // and it is also the answer the reader gets after the post goes out, so the two
+  // states are indistinguishable from outside.
   const incident = getIncident(slug);
   if (!incident) notFound();
 

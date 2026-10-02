@@ -7,9 +7,14 @@ import { site } from "@/lib/site";
  *
  * A route handler rather than a static file for the same reason as the feed: the
  * link list depends on `publishedAt <= now`, and a file written at build time
- * would keep advertising a future-dated incident once the build predated it. That
- * is also why the incident sections are built from `publishedIncidents()` here
- * while the static surfaces read `incidents` directly.
+ * would keep advertising a future-dated incident once the build predated it.
+ *
+ * That reason has since applied to every other surface too — the archive, the
+ * topics page, the incident pages and the command palette are all filtered and
+ * all ISR, with this file as the one place the list is assembled on every request
+ * rather than on revalidation. It stays dynamic because it is the surface most
+ * likely to be fetched by something that is not a browser, at a moment when
+ * nobody has reloaded a page to pick up a new post.
  *
  * The spec is an ordered format, not a free-form one: H1, then an optional
  * blockquote summary, then optional prose, then H2 sections of link lists. The
@@ -131,6 +136,15 @@ ${topicSections}
       "Content-Type": "text/plain; charset=utf-8",
       // Same reasoning as the feed: the content only changes when an incident is
       // published, but the build is a wall-clock snapshot of that set.
+      //
+      // One hour is also the honest bound on how late this file can be after the
+      // publish instant: `s-maxage` is the edge's cache, and `revalidatePath` from
+      // the cron does not reach it, so a consumer polling in the first hour after
+      // the publish minute can be served the previous list. That matches the worst
+      // case of the pages' own revalidation window rather than exceeding it, and
+      // the alternative — `no-store` — would mean a fetcher of last resort costing
+      // an invocation per request. Worth remembering if the lag ever matters more
+      // than the invocations do.
       "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
     },
   });

@@ -22,6 +22,16 @@ export const metadata: Metadata = {
 };
 
 /**
+ * ISR rather than a build-time snapshot — DESIGN.md section 8.6.
+ *
+ * The cron at `PUBLISH_CRON` revalidates the layout this page sits under, so
+ * the day's post appears without a deploy. This is the net: if the cron is late,
+ * missed or throttled, the page still turns over within the hour. A literal,
+ * because Next statically analyses the value.
+ */
+export const revalidate = 3600;
+
+/**
  * Today — DESIGN.md section 8.1.
  *
  * The featured incident is the page's only lead element; everything else is
@@ -39,6 +49,7 @@ export const metadata: Metadata = {
  * other. (DESIGN.md section 8.1 asks for one featured incident surface, not a
  * summary line.)
  */
+
 export default function TodayPage() {
   const incident = todaysIncident;
   const recent = recentIncidents(4);

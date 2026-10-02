@@ -12,6 +12,13 @@ export const metadata: Metadata = {
 };
 
 /**
+ * ISR, hourly — DESIGN.md section 8.6. Same net as `/archive` and `/q/[slug]`:
+ * the publish cron revalidates the layout, and this bounds what a missed cron
+ * costs.
+ */
+export const revalidate = 3600;
+
+/**
  * Topics — DESIGN.md section 8.4.
  *
  * Anchor ids match `topicNav`'s hrefs (`/topics#databases`), so the sidebar's
@@ -25,8 +32,11 @@ export const metadata: Metadata = {
  * incident each.
  *
  * `topicCounts` supplies the order, the counts, and the suppression of areas
- * with nothing in them, so the headings cannot drift from the content.
+ * with nothing in them, so the headings cannot drift from the content. Both it
+ * and `incidentsByTopic` are filtered to the published set, so this page cannot
+ * show a section for a topic whose only incident is scheduled.
  */
+
 export default function TopicsPage() {
   return (
     <div className="flex flex-col gap-block">

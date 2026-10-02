@@ -847,8 +847,8 @@ Two views, and they answer different questions:
   `publishedAt` and filtered through `isPublished`, so a scheduled incident cannot
   draw as diagnosed before its day. It is a real Monday-to-Sunday calendar, sized
   to the site's own history and capped at a year, and it reads the wall clock so a
-  run can visibly break — which is why `/streak` sets `revalidate = 86400` instead
-  of being a frozen snapshot. See section 15a.
+  run can visibly break — which is why it opts into revalidation rather than being
+  a frozen snapshot. See sections 8.6 and 15a.
 - **The reader's record** is personal: current streak, longest streak, incidents
   completed, computed from submitted attempts. Local calendar days, not UTC — "did
   I do something today" is a question about the reader's clock, and a submission
@@ -866,8 +866,19 @@ The published grid has three tones, and the third one is not a value:
 existed has not failed at anything, and a day that has not happened yet cannot
 have; sharing the `missed` tone made a five-day-old site render as delinquent.
 It carries no legend entry, because it is an absence rather than a value and the
-grid's `aria-label` states what it covers. Both views use local calendar days, so
-a day means the same day throughout.
+grid's `aria-label` states what it covers.
+
+**The two views no longer agree on what a day is, and that is the correction.** Both
+used local calendar days, on the reasoning that a day should mean the same day
+throughout — but the published grid is rendered by the server and the reader's
+record by the reader's browser, so "local" already meant two different timezones
+and the stated agreement was only true when both happened to be the same one. The
+grid now counts *publish* days (section 8.6): UTC, keyed off the same instant
+`isPublished` uses, so a cell can never be `done` for a post that has not gone out
+and "today" is the day whose post is scheduled rather than the day the server
+thinks it is. The reader's record keeps local days, because that is the question
+it answers. One view is the site's history and the other is a person's, and no
+single answer is right for both.
 
 A day counts once a self-check is **submitted**, not when it is locked in — a
 lock-in is a draft, and it is enough for the archive's mark (section 8.4) but not
@@ -918,6 +929,63 @@ sends need a content cadence worth mailing and a half-built confirmation flow is
 worse than none. The endpoint answers identically for a new and a returning
 address — "you are already subscribed" is a small leak about a stranger's
 membership for no product gain.
+
+### 8.6 Scheduled publishing
+
+One post a day is a schedule, so the site has to behave like one: the day's
+incident appears at a fixed moment, everywhere, without a deploy.
+
+**One instant a day, stated in IST.** 02:00 in the site's own timezone, which is
+20:30 UTC the evening before. `publishDayKey` in `lib/incidents.ts` is the whole
+mechanism: shift the clock into the site's timezone, and if the local clock has not
+reached the publish minute yet, step back a day. Everything before the instant
+still belongs to yesterday's post. It was "midnight wherever the server happened to
+be", which meant the flip landed at a different wall-clock moment for each reader,
+at an hour nobody was awake for, and left a cron with nothing to align to.
+
+The instant is written in IST rather than UTC because that is the frame the dates
+in `publishedAt` are written in and the frame the reader keeps their own dates in:
+a post dated the 3rd appearing at 02:00 on the 3rd is what "the 3rd's post" means
+to the person who writes it. IST is UTC+05:30 with no DST, so the UTC minute the
+cron needs is derived by arithmetic (`PUBLISH_MINUTE_OF_DAY_UTC`) rather than by
+carrying a timezone database into the build — which is also why this does not
+drift twice a year the way a Pacific-time instant would.
+
+The consequence to accept is that a reader west of the site sees a post dated the
+3rd while their own clock still says the 2nd, for a few hours after 02:00 IST. One
+instant a day means exactly one instant; the alternative is a day boundary that
+moves per reader, which is the bug this section exists to prevent.
+
+**Filtering is the contract; the cron is only the clock.** Every surface that
+renders reads `publishedIncidents()` — home, archive, `/topics`, the incident page,
+the command palette, the sidebar counts, the archive's tag chips — and
+`getIncident` returns nothing for an unpublished slug, so `/q/<scheduled-slug>`
+404s and its metadata is empty. A scheduled post is indistinguishable from one that
+does not exist: an archive that lists tomorrow's title, a sidebar count that
+includes it, or a `description` in a `<meta>` tag is a preview of what is coming,
+and the counts are the easiest leak of all because they are one derived array away
+and nobody looks at them. `incidents` stays exported because the registry needs it,
+and nothing that renders reads it.
+
+**ISR, with the cron on top.** `/`, `/archive`, `/topics`, `/streak` and
+`/q/[slug]` set `revalidate = 3600`; a Vercel cron at `30 20 * * *` — 20:30 UTC,
+which is 02:00 IST — calls `/api/revalidate`, which marks the root layout stale
+and lets each page re-render on its next request. The layout call rather than a
+list of paths, because a list needs a new line per page and the failure mode of
+forgetting is a stale page that looks fine forever. The hourly window is the net,
+not the mechanism: it bounds what a missed, throttled or late cron costs at an hour
+rather than until the next deploy, and it is also what keeps `/streak` honest about
+a day that published nothing, which no amount of cron precision would fix if the
+grid only turned over on deploys.
+
+**A date cannot add a page.** `generateStaticParams` prerenders what is published
+at build time, so a slug dated tomorrow is absent from that list — and
+`dynamicParams = false` would 404 it until the next deploy, which is the one thing
+a schedule cannot do. It stays at its default: the route renders on demand after
+the publish instant, and `getIncident` is what decides whether that render is the
+article or a 404. Same reason the feed and `/llms.txt` stayed dynamic route
+handlers: they are fetched by things that are not a browser, at moments when
+nobody has reloaded a page.
 
 ---
 
@@ -1282,9 +1350,12 @@ depend on when it was built, and the grid honoured it by anchoring to the newest
 incident instead of today. That was the wrong invariant for this page: a day that
 published nothing has to be *rendered* as missed, and anchoring to the newest
 incident means a skipped day is never rendered at all, so a streak can never
-visibly break. The page is now `revalidate = 86400`, which keeps it prerendered
-and static while bounding the staleness at a day. A literal, because Next has to
-statically analyse the value.
+visibly break. The page now sets `revalidate = 3600`, which keeps it prerendered
+and static while bounding the staleness at an hour — the same window every
+incident page uses, so there is one revalidation rule on the site rather than two,
+with the publish cron (section 8.6) doing the daily turn-over and the hourly
+number being the net under it. A literal, because Next has to statically analyse
+the value.
 
 Three geometry bugs came from the same anchor, and all three were invisible until
 rendered rather than computed. Rows were `anchor + n`, so row 0 was whatever

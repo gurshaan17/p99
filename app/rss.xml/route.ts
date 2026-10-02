@@ -96,6 +96,11 @@ ${items}
       // The feed only changes when an incident is published, but `built` is a
       // wall-clock stamp in the body, so it is not byte-stable. A short shared
       // cache keeps that honest without pinning a stale item list for long.
+      //
+      // It also means a subscriber polling in the first hour after the publish
+      // instant can be served the previous list: `s-maxage` is the edge's cache
+      // and the revalidation cron does not reach it. Same bound as the pages'
+      // own `revalidate`, which is the standard this one is measured against.
       "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
     },
   });
