@@ -64,6 +64,7 @@ components/
   about/              subscribe + mailto signup forms
   ui/                 button, control, badge, keycap, nav-item
 content/incidents/    ← one file per incident, this is where content lives
+  TEMPLATE.md         copy this to start an incident
   types.ts            the Incident schema + curated TOPICS list
   index.ts            the registry: imports every incident, newest first
 lib/                  incidents (queries), site config, origin, redis, metadata, nav
@@ -102,7 +103,7 @@ The `Incident` interface is in `content/incidents/types.ts`:
 | `constraints[]` | What the fix is not allowed to violate — the real difficulty |
 | `evidence[]` | The telemetry clues; `picks` are answerable from these |
 | `question` | What the reader is being asked to solve |
-| `picks[]` | Multiple-choice diagnoses, each with `options[]` and an `answer` id that must match an option id |
+| `picks[]` | Multiple-choice diagnoses, each with `options[]` and an `answer` id that must match one of those option ids — **check this by eye, nothing enforces it** |
 | `diagnosis` | Markdown, multi-paragraph. What was actually wrong |
 | `fix` | Markdown. What actually fixed it |
 | `rubric[]` | How to score *this reader's* answer: `process` \| `correctness` \| `depth` |
@@ -137,16 +138,15 @@ code — a single new file plus one line in the registry is the whole change.
    git checkout -b incident-your-slug
    ```
 
-2. **Copy the closest existing incident** as a starting point, rather than
-   writing the schema from memory:
+2. **Copy the template**, which has every field with a comment explaining what
+   belongs in it:
 
    ```bash
-   cp content/incidents/017-rate-limiter-shared-state-redis.ts \
-      content/incidents/018-your-slug.ts
+   cp content/incidents/TEMPLATE.md content/incidents/018-your-slug.ts
    ```
 
-   Then rewrite it. Copying gets the field set and the prose rhythm right;
-   starting from an empty file gets them subtly wrong.
+   Copying the closest existing incident instead is also fine — it gets the
+   prose rhythm right where the template only gets the schema right.
 
 3. **Fill in every field** per the table above. Set `publishedAt` to today or
    earlier — a future date hides the incident until it arrives, which is a
@@ -173,9 +173,13 @@ code — a single new file plus one line in the registry is the whole change.
    npm run build
    ```
 
-   A `tsc` error here is almost always a misspelled `topic`, an `answer` id that
-   does not match any option, or a `rubric[].dim` outside the three allowed
-   values.
+   A `tsc` error here is almost always a misspelled `topic`, a `difficulty`
+   outside the three allowed values, or a `rubric[].dim` outside its three.
+
+   The one thing a build *will not* catch is an `answer` id that matches none of
+   its own option ids — `answer` is a plain `string`, so `tsc` has nothing to
+   compare it against. That compiles clean and then ships a question with no
+   correct answer. Read it once more yourself.
 
 6. **Open the PR** against `main` with a short description: the failure mode, and
    why it is worth reading. That description is what I use to decide whether to
@@ -197,6 +201,30 @@ issue with the failure mode and I will write it up.
 - **Match the schema exactly.** `npm run build` is the contract.
 - **Be honest about difficulty.** `hard` is fine; so is `easy`. A mislabelled
   difficulty is worse than either.
+
+### CI checks
+
+Every PR runs `.github/workflows/ci.yml`: `npm ci`, `npm run lint`,
+`npm run build`, plus one extra step.
+
+Because the incidents are TypeScript, `npm run build` **is** most of the schema
+validator — an unknown `topic`, a `difficulty` outside the three allowed values,
+or a `rubric[].dim` outside its own three fails the build. No separate content
+linter exists, deliberately: a second validator could only check a subset of
+what `tsc` already checks, and the two would drift.
+
+What CI does *not* catch, and neither does a local build:
+
+- **An unregistered incident** — a new file under `content/incidents/` that
+  nobody added to `index.ts`. It typechecks alone and the site builds fine; the
+  incident is simply absent from the archive, the feed and the streak. This is
+  the extra step, and it runs only when a PR *adds* a file in that directory,
+  since editing an existing incident needs no registry change.
+- **An `answer` id matching none of its own options.** `answer` is a plain
+  `string`, so there is nothing for `tsc` to compare it against. A typo ships a
+  question with no correct answer. This one needs a human, or a schema change I
+  have not made yet — tightening `picks` to a generic keyed on `options` would
+  close it properly if you want that.
 
 ## Design and agent conventions
 

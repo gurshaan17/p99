@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A push to main is usually the merge of a PR that already ran this, so cancel
+# the duplicate rather than spending a second build slot on it.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # The real gate. `content/incidents/*.ts` is typechecked against
+      # `Incident`, so an unknown `topic`, a `rubric[].dim` outside the three
+      # allowed values, or an `answer` id matching no option fails here rather
+      # than rendering broken. No separate validator is needed, and a second one
+      # would only be able to check a subset of what tsc already checks.
+      - name: Build
+        run: npm run build
+
+      # The one mistake a build cannot catch: a new incident file that nobody
+      # registered. It typechecks on its own, and the site builds fine — the
+      # incident is just silently absent from the archive, the feed and the
+      # streak. Narrowed to *added* files because editing an existing incident
+      # needs no registry change.
+      - name: Check new incidents are registered
+        if: github.event_name == 'pull_request'
+        run: |
+          NEW_INCIDENTS=$(git diff --name-only --diff-filter=A origin/main...HEAD -- 'content/incidents/*.ts')
+          if [ -z "$NEW_INCIDENTS" ]; then
+            echo "No new incident files — nothing to register."
+            exit 0
+          fi
+          echo "New incident files:"
+          echo "$NEW_INCIDENTS"
+          if ! git diff --name-only origin/main...HEAD -- 'content/incidents/index.ts' | grep -q .; then
+            echo ""
+            echo "::error::A new incident was added but content/incidents/index.ts was not edited."
+            echo "Import the incident and add it to the incidents[] array, or it will not appear on the site."
+            exit 1
+          fi
+          echo "content/incidents/index.ts was edited — ok."
