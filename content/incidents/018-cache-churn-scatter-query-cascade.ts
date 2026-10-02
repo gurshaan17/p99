@@ -93,33 +93,6 @@ export const cacheChurnScatterQueryCascade = {
       answer: "fanout-per-miss",
     },
     {
-      id: "throttle-shape",
-      prompt: "How should the boot throttle be used?",
-      options: [
-        {
-          id: "boot-path-incremental",
-          label:
-            "Throttle the boot path only, so sessions that already booted keep working untouched, and raise the cap in small steps — each step small enough that it cannot re-saturate what the last step relieved",
-        },
-        {
-          id: "uniform-then-restore",
-          label:
-            "Throttle all traffic evenly so no path is privileged, then restore everything to full capacity in one step once the database is healthy again",
-        },
-        {
-          id: "scale-db-first",
-          label:
-            "Scale the database tier out first, then lift the throttle, since more capacity under the miss load means boot can be unthrottled sooner",
-        },
-        {
-          id: "kill-retries",
-          label:
-            "Disable client retries outright and lift the throttle, since retry traffic is pure amplification with no useful work in it",
-        },
-      ],
-      answer: "boot-path-incremental",
-    },
-    {
       id: "remove-amplification",
       prompt: "Which change removes the amplification rather than absorbing it?",
       options: [
@@ -145,33 +118,6 @@ export const cacheChurnScatterQueryCascade = {
         },
       ],
       answer: "denormalize-to-channel",
-    },
-    {
-      id: "control-loop",
-      prompt: "What does the provisioning controller's behaviour say about control loops like it?",
-      options: [
-        {
-          id: "bound-the-rate",
-          label:
-            "The loop was doing the right thing with no rate limit: acting as fast as it could turned a rolling change into sustained cold-cache churn, so its pace has to be bounded and tied to hit rate, not made faster",
-        },
-        {
-          id: "revert-the-loop",
-          label:
-            "The controller is buggy — promoting empty spares and flushing rejoins is simply wrong and should be reverted to its previous behaviour",
-        },
-        {
-          id: "faster-is-safer",
-          label:
-            "Faster failure detection is always safer, so the loop should react even more quickly and the fix belongs in making the reaction cheap",
-        },
-        {
-          id: "fix-downstream-only",
-          label:
-            "The controller behaved exactly as designed and all the damage was downstream, so the fix belongs entirely in the database layer",
-        },
-      ],
-      answer: "bound-the-rate",
     },
   ],
   diagnosis: `**What the rollout did to the cache.** The cache tier is only a cache because a proxy maps keys onto nodes by consistent hashing over the ordered list of healthy nodes. That list is the fragile part. When a node leaves the catalog, its share of the keyspace has to go somewhere, and the controller's answer is to promote an empty spare — a node with nothing in it, whose share of the ring is entirely misses. The next part is the one that turns a rolling upgrade into an outage: a node that comes back is flushed before it is promoted, deliberately, on the theory that a rejoining node may hold data that is no longer valid. For a cache holding only immutable membership that theory is wrong, and the flush throws away a warm node that had just finished refilling. Fifty nodes out, fifty empty spares in, fifty warm nodes flushed on the way back. Every step of that is individually correct behaviour from three systems doing exactly what they were built to do.
@@ -227,11 +173,7 @@ The third is the one that stops the recurrence. The rollout process needs a gate
   ],
   rubric: [
     {
-      text: "Separated the trigger from the state: named the rollout as adjacent rather than causal, on the grounds that the same loop would have been reached by a node failure or a deploy",
-      dim: "process",
-    },
-    {
-      text: "Used the flat hit rate after the last replacement — 40 minutes of no change — to rule out 'restarts still draining' rather than assuming the pause worked",
+      text: "Separated the trigger from the state: named the rollout as adjacent rather than causal, on the grounds that the same loop would have been reached by a node failure or a deploy, and used the flat hit rate over the 40 minutes after the last replacement to rule out 'restarts still draining'",
       dim: "process",
     },
     {
@@ -239,36 +181,24 @@ The third is the one that stops the recurrence. The rollout process needs a gate
       dim: "correctness",
     },
     {
-      text: "Named the fan-out as the amplifier — one missing channel is 200 shard reads — rather than treating the cold cache itself as the fault",
+      text: "Named the fan-out as the amplifier and quantified it — about 8 missing channels per boot × 200 shards ≈ 1,600 shard reads per boot, versus effectively zero at a 99.2% hit rate — rather than treating the cold cache itself as the fault",
       dim: "correctness",
     },
     {
-      text: "Quantified the coefficient: about 8 missing channels per boot × 200 shards ≈ 1,600 shard reads per boot, versus effectively zero at a 99.2% hit rate",
+      text: "Explained why it read as superlinear when the term is linear: the saturation knee past which fills time out, plus three retries with backoff and jitter multiplying an already multiplied quantity",
       dim: "depth",
     },
     {
-      text: "Explained why it read as superlinear when the term is linear — the saturation knee plus three retries with backoff and jitter multiplying an already multiplied quantity",
+      text: "Named denormalizing membership onto the channel key as the fix that removes the amplification, noticed that the existing channel-keyed table holds no member rows so it is a real migration, and justified reading immutable rows from replicas on a 200ms lag budget",
       dim: "depth",
     },
     {
-      text: "Named denormalizing membership onto the channel key as the fix that removes the amplification, and noticed that the existing channel-keyed table holds no member rows, so it is a real migration rather than a query rewrite",
-      dim: "depth",
-    },
-    {
-      text: "Justified reading from replicas on immutability and a 200ms lag budget, and saw it as taking the whole fan-out off the primaries rather than as a nice-to-have",
-      dim: "depth",
-    },
-    {
-      text: "Recommended bounding the control loop rather than reverting or speeding it up: rate-limit replacements, prefer warm spares, flush only when staleness is possible, and slow the loop down when hit rate is already low",
+      text: "Recommended bounding the control loop and gating the rollout on hit rate rather than reverting or speeding it up — rate-limit replacements, prefer warm spares, flush only when staleness is possible — while flagging the shape of that fix as a committed direction rather than a verified mechanism",
       dim: "correctness",
     },
     {
       text: "Shaped the throttle around the boot path and incremental raises, and explained the failed 250 → 2,500 step as re-running the incident rather than as an unlucky guess",
       dim: "process",
-    },
-    {
-      text: "Flagged which conclusions were inference — the shard-count tradeoff and the shape of the control-loop fix — rather than presenting them as observed",
-      dim: "depth",
     },
   ],
 } satisfies Incident;
