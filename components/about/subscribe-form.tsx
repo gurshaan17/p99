@@ -89,11 +89,11 @@ export function SubscribeForm() {
             if (state === "error") setState("idle");
           }}
           placeholder="you@example.com"
-          className="h-10 min-w-0 flex-1 rounded-control border border-line bg-page px-3 text-body text-ink outline-none transition-colors duration-(--dur-hover) placeholder:text-ink-3 focus-visible:border-line-strong disabled:opacity-60"
+          className="h-11 min-w-0 flex-1 rounded-control border border-line bg-page px-3 text-base text-ink outline-none transition-colors duration-(--dur-hover) placeholder:text-ink-3 focus-visible:border-line-strong disabled:opacity-60 sm:h-10 sm:text-body"
         />
         <PrimaryButton
           type="submit"
-          className="shrink-0 sm:w-auto disabled:opacity-60"
+          className="shrink-0 w-full sm:w-auto disabled:opacity-60"
           disabled={state === "submitting" || state === "done"}
         >
           {state === "submitting" ? "Adding…" : "Subscribe"}
