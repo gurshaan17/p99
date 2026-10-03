@@ -41,6 +41,15 @@ function encodeSubject(subject: string): string {
   return `=?UTF-8?B?${Buffer.from(subject, "utf-8").toString("base64")}?=`;
 }
 
+/**
+ * Display name for the sender. Inboxes show "P99" rather than the bare
+ * address; the address itself stays in SES_FROM_EMAIL because the same
+ * env var feeds the mailto: unsubscribe, which needs a bare address.
+ */
+function fromHeader(address: string): string {
+  return `P99 <${address}>`;
+}
+
 function buildMime(
   from: string,
   recipient: string,
@@ -51,7 +60,7 @@ function buildMime(
   const mailto = `mailto:${from}?subject=${encodeURIComponent("Unsubscribe")}`;
 
   const message = [
-    `From: ${from}`,
+    `From: ${fromHeader(from)}`,
     `To: ${recipient}`,
     `Subject: ${encodeSubject(rendered.subject)}`,
     "MIME-Version: 1.0",
@@ -91,7 +100,7 @@ export async function sendRendered(
       try {
         await getSes().send(
           new SendRawEmailCommand({
-            Source: from,
+            Source: fromHeader(from),
             Destinations: [recipient],
             RawMessage: { Data: buildMime(from, recipient, rendered) },
           }),
