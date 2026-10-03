@@ -19,8 +19,7 @@ import { PrimaryButton } from "@/components/ui/button";
  *
  * The success line deliberately does not say whether the address was already on
  * the list — the endpoint cannot tell this component that, and it should not
- * guess. Nothing is emailed yet, so the line sets that expectation rather than
- * promising a message that does not exist.
+ * guess. It promises the welcome note, which goes out exactly once per address.
  */
 
 type State = "idle" | "submitting" | "done" | "error";
@@ -116,7 +115,7 @@ export function SubscribeForm() {
         }`}
       >
         {state === "done"
-          ? "You're in. We aren't sending mail yet — the list is just collecting interest until there's a daily send worth mailing."
+          ? "You're in. A welcome note is on its way — the daily incident follows from there."
           : message}
       </p>
     </form>

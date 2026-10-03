@@ -43,6 +43,11 @@ npm run lint       # eslint
 | `UPSTASH_REDIS_REST_URL` | for `/api/subscribe` | Redis endpoint backing the rate limiter |
 | `UPSTASH_REDIS_REST_TOKEN` | for `/api/subscribe` | Redis token |
 | `CRON_SECRET` | in production | Bearer token Vercel's cron sends to `/api/revalidate` |
+| `AWS_REGION` | for sending | SES region |
+| `AWS_ACCESS_KEY_ID` | for sending | AWS access key |
+| `AWS_SECRET_ACCESS_KEY` | for sending | AWS secret key |
+| `SES_FROM_EMAIL` | for sending | Verified sender address |
+| `SNS_WEBHOOK_SECRET` | for the SNS webhook | Shared secret the SNS webhook endpoint checks |
 | `VERCEL_PROJECT_PRODUCTION_URL` | auto on Vercel | Canonical origin (canonical URLs, RSS, OG tags) |
 | `VERCEL_URL` | auto on Vercel | Fallback origin, overridden by the above |
 

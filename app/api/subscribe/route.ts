@@ -1,15 +1,17 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { getRedis } from "@/lib/redis";
+import { hasSes } from "@/lib/ses";
+import { sendRendered } from "@/lib/email/send";
+import { renderWelcome } from "@/lib/email/welcome";
 
 /**
  * Newsletter capture — DESIGN.md sections 8.5, 15a.
  *
- * Writes to Redis and nothing else. There is no confirmation email, no double
- * opt-in, and no send, and that is deliberate rather than unfinished: daily sends
- * are deferred until there is a content cadence worth mailing, and a half-built
- * confirmation flow is worse than none. The set accumulates expressed interest
- * so that adding a send later needs no migration of what we already have.
+ * Writes to Redis and, on a genuinely new address, sends the welcome email.
+ * Daily sends are deferred until there is a content cadence worth mailing past
+ * the welcome note; the Set still accumulates expressed interest so that adding
+ * a send later needs no migration of what we already have.
  *
  * The Set is the whole dedupe story. `SADD` is idempotent, so subscribing twice
  * is indistinguishable from subscribing once — and the response is the same
@@ -98,8 +100,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  let added: number;
   try {
-    await getRedis().sadd(SUBSCRIBERS_KEY, email.trim().toLowerCase());
+    // Upstash returns how many members were actually added, so a returning
+    // address reads 0 — which is what keeps the welcome note from going out
+    // twice to the same person while the response stays indistinguishable.
+    added = await getRedis().sadd(SUBSCRIBERS_KEY, email.trim().toLowerCase());
   } catch (error) {
     // Never echo the Redis error: it can carry the endpoint URL and token. The
     // reader gets a generic failure and the server logs the detail.
@@ -108,6 +114,20 @@ export async function POST(request: NextRequest) {
       { error: "Something went wrong. Try again shortly." },
       { status: 500 },
     );
+  }
+
+  if (added === 1 && hasSes()) {
+    try {
+      const report = await sendRendered([email.trim().toLowerCase()], renderWelcome());
+      if (report.failed.length > 0) {
+        console.error("subscribe: welcome send failed", report.failed[0]?.error);
+      }
+    } catch (error) {
+      // A failed welcome is not a failed signup: the address is stored, and an
+      // honest retry path exists (the welcome can be re-sent) rather than
+      // pretending the subscription never happened.
+      console.error("subscribe: welcome send threw", { error: String(error) });
+    }
   }
 
   // Identical for a new address and a returning one, on purpose.
