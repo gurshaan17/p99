@@ -10,6 +10,7 @@ import { hotKeySingleThreadRedis } from "./015-hot-key-single-thread-redis";
 import { counterReadModifyWriteRace } from "./016-counter-read-modify-write-race";
 import { rateLimiterSharedStateRedis } from "./017-rate-limiter-shared-state-redis";
 import { cacheChurnScatterQueryCascade } from "./018-cache-churn-scatter-query-cascade";
+import { expiredInternalMtlsCert } from "./019-expired-internal-mtls-cert";
 import type { Incident } from "./types";
 
 export type { Incident };
@@ -37,4 +38,5 @@ export const incidents: Incident[] = [
   counterReadModifyWriteRace,
   rateLimiterSharedStateRedis,
   cacheChurnScatterQueryCascade,
+  expiredInternalMtlsCert,
 ].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
