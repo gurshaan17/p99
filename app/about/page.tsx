@@ -63,7 +63,7 @@ export default function AboutPage() {
         <SubscribeForm />
         <p className="text-small text-ink-3">
           Every post goes out by email at 09:30 IST, then stays on the site.
-          One email a day, no roundups, no "top picks" — the same incident,
+          One email a day, no roundups, no &ldquo;top picks&rdquo; — the same incident,
           the same morning.
         </p>
       </section>
