@@ -1,8 +1,8 @@
 import { ORIGIN } from "@/lib/origin";
 import type { Incident } from "@/lib/incidents";
+import { unsubscribeUrl } from "@/lib/unsubscribe";
 import {
   ACCENT,
-  UNSUBSCRIBE_URL,
   divider,
   escapeHtml,
   sectionLabel,
@@ -24,8 +24,12 @@ export interface RenderedEmail {
   text: string;
 }
 
-export function renderDailyDigest(incident: Incident): RenderedEmail {
+export function renderDailyDigest(
+  incident: Incident,
+  recipient: string,
+): RenderedEmail {
   const url = `${ORIGIN}/q/${incident.slug}`;
+  const unsub = unsubscribeUrl(recipient);
   const subject = incident.title;
 
   const constraints = incident.constraints
@@ -60,7 +64,7 @@ export function renderDailyDigest(incident: Incident): RenderedEmail {
       <a href="${url}" style="display:inline-block;padding:12px 20px;background:${ACCENT};color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;border-radius:6px;">Solve it&nbsp;&rarr;</a>
     </p>`;
 
-  const html = shellHtml("p99&nbsp;&nbsp;·&nbsp;&nbsp;daily incident", inner);
+  const html = shellHtml("p99&nbsp;&nbsp;·&nbsp;&nbsp;daily incident", inner, unsub);
 
   const text = `p99 · daily incident
 
@@ -82,7 +86,7 @@ Solve it: ${url}
 
 ---
 p99 — one production incident a day.
-Unsubscribe: ${UNSUBSCRIBE_URL}
+Unsubscribe: ${unsub}
 `;
 
   return { subject, html, text };

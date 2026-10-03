@@ -48,6 +48,7 @@ npm run lint       # eslint
 | `AWS_SECRET_ACCESS_KEY` | for sending | AWS secret key |
 | `SES_FROM_EMAIL` | for sending | Verified sender address |
 | `SNS_WEBHOOK_SECRET` | for the SNS webhook | Shared secret the SNS webhook endpoint checks |
+| `UNSUBSCRIBE_SECRET` | for sending | HMAC key signing unsubscribe links |
 | `VERCEL_PROJECT_PRODUCTION_URL` | auto on Vercel | Canonical origin (canonical URLs, RSS, OG tags) |
 | `VERCEL_URL` | auto on Vercel | Fallback origin, overridden by the above |
 

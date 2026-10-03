@@ -1,6 +1,7 @@
 import { ORIGIN } from "@/lib/origin";
 import type { RenderedEmail } from "./daily-digest";
-import { ACCENT, UNSUBSCRIBE_URL, shellHtml } from "./frame";
+import { unsubscribeUrl } from "@/lib/unsubscribe";
+import { ACCENT, shellHtml } from "./frame";
 
 /**
  * The welcome email — sent once, when an address first subscribes.
@@ -9,8 +10,9 @@ import { ACCENT, UNSUBSCRIBE_URL, shellHtml } from "./frame";
  * what arrives and when — one incident a day at 02:00 IST, matching the
  * site's publish instant.
  */
-export function renderWelcome(): RenderedEmail {
+export function renderWelcome(recipient: string): RenderedEmail {
   const subject = "You're on the list";
+  const unsub = unsubscribeUrl(recipient);
 
   const inner = `
     <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;font-weight:600;">You're on the list.</h1>
@@ -20,7 +22,7 @@ export function renderWelcome(): RenderedEmail {
       <a href="${ORIGIN}" style="display:inline-block;padding:12px 20px;background:${ACCENT};color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;border-radius:6px;">Read today's incident&nbsp;&rarr;</a>
     </p>`;
 
-  const html = shellHtml("p99&nbsp;&nbsp;·&nbsp;&nbsp;welcome", inner);
+  const html = shellHtml("p99&nbsp;&nbsp;·&nbsp;&nbsp;welcome", inner, unsub);
 
   const text = `p99 · welcome
 
@@ -34,7 +36,7 @@ Read today's incident: ${ORIGIN}
 
 ---
 p99 — one production incident a day.
-Unsubscribe: ${UNSUBSCRIBE_URL}
+Unsubscribe: ${unsub}
 `;
 
   return { subject, html, text };

@@ -118,7 +118,10 @@ export async function POST(request: NextRequest) {
 
   if (added === 1 && hasSes()) {
     try {
-      const report = await sendRendered([email.trim().toLowerCase()], renderWelcome());
+      const report = await sendRendered(
+        [email.trim().toLowerCase()],
+        renderWelcome(email.trim().toLowerCase()),
+      );
       if (report.failed.length > 0) {
         console.error("subscribe: welcome send failed", report.failed[0]?.error);
       }

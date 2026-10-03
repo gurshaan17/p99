@@ -1,5 +1,3 @@
-import { ORIGIN } from "@/lib/origin";
-
 /**
  * Shared email frame — the DESIGN.md layout language translated into the
  * smallest subset of HTML email clients agree on.
@@ -53,26 +51,19 @@ export function sectionLabel(index: string, label: string): string {
   return `<p style="margin:0 0 8px;font-family:${MONO};font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:${MUTED};">${index}&nbsp;&nbsp;${label}</p>`;
 }
 
-/**
- * The unsubscribe URL in one place.
- *
- * Not a live route yet — that is the SNS/unsubscribe step — so this points at
- * the path it will get and the footer carries the same promise. When the
- * unsubscribe work lands, the send path grows a token or the route reads a
- * query param; the renderers stay as they are because they only know about
- * the URL.
- */
-export const UNSUBSCRIBE_URL = `${ORIGIN}/unsubscribe`;
-
-function footer(): string {
+function footer(unsubscribeUrl: string): string {
   return `<p style="margin:0;font-family:${MONO};font-size:11px;line-height:1.6;text-transform:uppercase;letter-spacing:0.08em;color:${MUTED};">
       p99 — one production incident a day<br />
-      You are getting this because you subscribed. <a href="${UNSUBSCRIBE_URL}" style="color:${MUTED};">Unsubscribe</a>
+      You are getting this because you subscribed. <a href="${unsubscribeUrl}" style="color:${MUTED};">Unsubscribe</a>
     </p>`;
 }
 
 /** Wrap `inner` in the shared page shell: fonts, background, card. */
-export function shellHtml(kickerLine: string, inner: string): string {
+export function shellHtml(
+  kickerLine: string,
+  inner: string,
+  unsubscribeUrl: string,
+): string {
   return `<!doctype html>
 <html>
 <head>
@@ -90,7 +81,7 @@ export function shellHtml(kickerLine: string, inner: string): string {
     ${divider()}
     ${inner}
     ${divider()}
-    ${footer()}
+    ${footer(unsubscribeUrl)}
   </div>
 </body>
 </html>`;

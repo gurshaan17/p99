@@ -1,6 +1,6 @@
 import { SendRawEmailCommand } from "@aws-sdk/client-ses";
 import { getSes } from "@/lib/ses";
-import { ORIGIN } from "@/lib/origin";
+import { unsubscribeUrl } from "@/lib/unsubscribe";
 import type { Incident } from "@/lib/incidents";
 import { renderDailyDigest, type RenderedEmail } from "./daily-digest";
 
@@ -47,11 +47,7 @@ function buildMime(
   rendered: RenderedEmail,
 ): Buffer {
   const boundary = `p99-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-  // The unsubscribe target this message references: header form sends
-  // everything below, and the HTTPS form must satisfy one-click unsubscribe
-  // for the `List-Unsubscribe-Post` header to be meaningful rather than a
-  // hint.
-  const unsubscribeUrl = `${ORIGIN}/unsubscribe`;
+  const unsubscribe = unsubscribeUrl(recipient);
   const mailto = `mailto:${from}?subject=${encodeURIComponent("Unsubscribe")}`;
 
   const message = [
@@ -59,7 +55,7 @@ function buildMime(
     `To: ${recipient}`,
     `Subject: ${encodeSubject(rendered.subject)}`,
     "MIME-Version: 1.0",
-    `List-Unsubscribe: <${mailto}>, <${unsubscribeUrl}>`,
+    `List-Unsubscribe: <${mailto}>, <${unsubscribe}>`,
     "List-Unsubscribe-Post: List-Unsubscribe=One-Click",
     `Content-Type: multipart/alternative; boundary="${boundary}"`,
     "",
@@ -122,5 +118,22 @@ export function sendDailyDigest(
   toEmails: string[],
   incident: Incident,
 ): Promise<SendReport> {
-  return sendRendered(toEmails, renderDailyDigest(incident));
+  // Rendered per recipient: the unsubscribe link is HMAC-signed for their
+  // own address, so one shared render would sign one token and reuse it
+  // for everyone — a signed-for-Bob link copied into Alice's mailbox would
+  // verify as Bob's.
+  const renders = toEmails.map((email) => renderDailyDigest(incident, email));
+  const from = process.env.SES_FROM_EMAIL;
+  if (!from) {
+    return Promise.reject(
+      new Error("Missing SES_FROM_EMAIL. Required as the From header."),
+    );
+  }
+  const results = toEmails.map((recipient, i) =>
+    sendRendered([recipient], renders[i]),
+  );
+  return Promise.all(results).then((reports) => ({
+    succeeded: reports.flatMap((r) => r.succeeded),
+    failed: reports.flatMap((r) => r.failed),
+  }));
 }
