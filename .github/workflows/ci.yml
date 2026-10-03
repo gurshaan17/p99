@@ -31,6 +31,12 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Unit tests
+        run: npm test
+
+      - name: SEO validation
+        run: npm run seo:validate
+
       # The real gate. `content/incidents/*.ts` is typechecked against
       # `Incident`, so an unknown `topic`, a `rubric[].dim` outside the three
       # allowed values, or an `answer` id matching no option fails here rather

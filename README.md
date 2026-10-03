@@ -75,10 +75,17 @@ content/incidents/    ← one file per incident, this is where content lives
   types.ts            the Incident schema + curated TOPICS list
   index.ts            the registry: imports every incident, newest first
 lib/                  incidents (queries), site config, origin, redis, metadata, nav
+lib/seo/               the SEO core — pages, metadata, schema, canonical,
+                       breadcrumbs, related, eligibility, sitemap
+scripts/              seo-validate.ts (npm run seo:validate)
+docs/                 seo.md (SEO architecture), seo-audit.md (phase-27 audit)
 hooks/                useAttempt (in-memory answer state), useResolvedSlugs
 DESIGN.md             design system — tokens, typography, layout, components
 AGENTS.md             rules for coding agents working in this repo
 ```
+
+CI also runs `npm run seo:validate` and `npm test` (vitest) alongside the
+type check and build. See `docs/seo.md` for how the SEO core fits together.
 
 ## Content model
 
@@ -245,7 +252,12 @@ issue with the failure mode and I will write it up.
 ### CI checks
 
 Every PR runs `.github/workflows/ci.yml`: `npm ci`, `npm run lint`,
-`npm run build`, plus one extra step.
+`npm run build`, `npm test`, `npm run seo:validate`, plus one extra step.
+
+`npm run seo:validate` checks the corpus against the SEO rules — duplicate
+slugs/titles, eligibility failures, sitemap/eligibility mismatches, invalid
+canonical paths, broken JSON-LD wiring — using the same functions the routes
+use at render time, and exits non-zero on any ERROR.
 
 Because the incidents are TypeScript, `npm run build` **is** most of the schema
 validator — an unknown `topic`, a `difficulty` outside the three allowed values,

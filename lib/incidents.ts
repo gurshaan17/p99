@@ -140,7 +140,32 @@ export function isPublished(incident: Incident, now = new Date()): boolean {
  * can disagree, which is the cheaper of the two.
  */
 export function publishedIncidents(now = new Date()): Incident[] {
-  return incidents.filter((incident) => isPublished(incident, now));
+  return getPublished(now);
+}
+
+/**
+ * The published view, memoized per publish-day.
+ *
+ * Every list below — topic counts, tags, incidents-by-topic, the streak grid —
+ * and the SEO core all read the same published set, and every renderer calls
+ * in more than once per request. All of them used to re-filter the registry
+ * on every call, and each module-level derivation re-filtered again at import.
+ * A day has at most one publish instant, so within a day the answer cannot
+ * change: cache it by `publishDayKey` and drop the entry only when the world
+ * actually moves. At 100k incidents the registry scan is a millisecond or two,
+ * and this is what keeps that from happening on every render path.
+ *
+ * Still timezone-correct for warm lambdas: the key is recomputed per call, so
+ * the first call after the publish instant rebuilds rather than answering the
+ * question the lambda booted with.
+ */
+let publishedCache: { key: string; published: Incident[] } | undefined;
+function getPublished(now = new Date()): Incident[] {
+  const key = publishDayKey(now);
+  if (publishedCache?.key === key) return publishedCache.published;
+  const published = incidents.filter((incident) => isPublished(incident, now));
+  publishedCache = { key, published };
+  return published;
 }
 
 /**

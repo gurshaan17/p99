@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { incidentsByTopic, topicCounts } from "@/lib/incidents";
 import { ALTERNATE_TYPES, OPEN_GRAPH } from "@/lib/metadata";
 import { SectionHeader } from "@/components/archive/section-header";
@@ -59,12 +60,20 @@ export default function TopicsPage() {
             aria-labelledby={`h-${id}`}
             className="flex scroll-mt-16 flex-col gap-2"
           >
-            <SectionHeader
-              index={String(i + 1).padStart(2, "0")}
-              title={label}
-              description={description}
-              count={count}
-            />
+            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+              <SectionHeader
+                index={String(i + 1).padStart(2, "0")}
+                title={label}
+                description={description}
+                count={count}
+              />
+              <Link
+                href={`/topics/${id}`}
+                className="ml-auto text-small text-ink-3 underline-offset-4 hover:text-ink hover:underline"
+              >
+                Open {label} →
+              </Link>
+            </div>
 
             <ul className="list-rows flex flex-col">
               {items.map((incident) => (

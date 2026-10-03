@@ -50,7 +50,7 @@ export const nav: NavItemSpec[] = [
  * `postgres` was both a section and a filter that returned everything.
  */
 export const topicNav: TopicNavSpec[] = topicCounts.map((t) => ({
-  href: `/topics#${t.id}`,
+  href: `/topics/${t.id}`,
   label: t.label,
   count: t.count,
 }));

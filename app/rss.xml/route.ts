@@ -1,6 +1,7 @@
 import { publishedIncidents } from "@/lib/incidents";
 import { ORIGIN } from "@/lib/origin";
 import { site } from "@/lib/site";
+import { escapeXml } from "@/lib/xml";
 
 /**
  * RSS 2.0 feed — DESIGN.md section 8.5.
@@ -27,32 +28,6 @@ export const dynamic = "force-dynamic";
  * also reads — a feed pointing at a different host than the page's own card is
  * the kind of inconsistency nobody catches before shipping.
  */
-
-/**
- * Escape for XML character data.
- *
- * Not optional: an incident title containing `&` or `<` produces a feed that
- * fails to parse, and RSS readers drop the whole document when that happens. The
- * site is ASCII today, but titles are content, and content is edited.
- *
- * Also strips control characters, which are illegal in XML 1.0 outright and would
- * make the document unrecoverable rather than merely wrong.
- */
-function escapeXml(value: string): string {
-  return (
-    value
-      // XML 1.0 allows tab, LF and CR; every other C0 control is illegal
-      // outright. Written as escapes rather than literal bytes so the class stays
-      // legible in a diff.
-      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&apos;")
-  );
-}
-
 
 /** RSS requires RFC 822 dates, not ISO 8601. */
 function rfc822(isoDate: string): string {

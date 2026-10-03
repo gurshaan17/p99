@@ -6,7 +6,10 @@ import {
   publishedIncidents,
   topicMeta,
 } from "@/lib/incidents";
-import { ALTERNATE_TYPES } from "@/lib/metadata";
+import { buildIncidentSEOPage } from "@/lib/seo/pages";
+import { buildMetadata } from "@/lib/seo/metadata";
+import { breadcrumbSchema, incidentSchema } from "@/lib/seo/schema";
+import { getRelatedIncidents } from "@/lib/seo/related";
 import {
   Constraints,
   Evidence,
@@ -61,14 +64,9 @@ export async function generateMetadata({
   // no description — a scheduled post must not be announced by its metadata.
   const incident = getIncident(slug);
   if (!incident) return {};
-  return {
-    // No brand suffix: the layout's `title.template` is the only place it is
-    // written, and hardcoding it here as well meant an incident title was the
-    // one page title still carrying its own copy.
-    title: incident.title,
-    description: incident.symptom,
-    alternates: { canonical: `/q/${slug}`, types: ALTERNATE_TYPES },
-  };
+  // All title/description/canonical/OG/Twitter/robots rules live in the SEO
+  // core; this route only names the entity.
+  return buildMetadata(buildIncidentSEOPage(incident));
 }
 
 export default async function IncidentPage({
@@ -85,20 +83,34 @@ export default async function IncidentPage({
   const incident = getIncident(slug);
   if (!incident) notFound();
 
+  const seoPage = buildIncidentSEOPage(incident);
+  const related = getRelatedIncidents(incident);
+
   return (
     <div className="flex flex-col">
+      <nav aria-label="Breadcrumb" className="mb-4 font-mono text-micro tracking-wider text-ink-3 uppercase">
+        {seoPage.breadcrumbs.map((crumb, i) => (
+          <span key={crumb.path}>
+            {i > 0 ? <span aria-hidden> / </span> : null}
+            {i === seoPage.breadcrumbs.length - 1 ? (
+              <span aria-current="page" className="text-ink-2">{crumb.name}</span>
+            ) : (
+              <Link href={crumb.path} className="hover:text-ink hover:underline underline-offset-4">{crumb.name}</Link>
+            )}
+          </span>
+        ))}
+      </nav>
+
       <article className="flex flex-col gap-section">
         <header className="flex flex-col gap-item">
           <span className="flex flex-wrap items-center gap-item font-mono text-micro tracking-wider text-ink-3 uppercase">
             {/*
-              The topic leads, and links to the section this post is filed under.
-              Tags stay as badges: they are what the post is *about*, and the
-              section is where it is *shelved* — a reader who lands here should be
-              one click from its neighbours without knowing the term for the
-              problem.
+              The topic leads, and links to the hub for the area this post is
+              filed under. Tags stay as badges: they are what the post is *about*,
+              and the hub is where it is *shelved*.
             */}
             <Link
-              href={`/topics#${incident.topic}`}
+              href={`/topics/${incident.topic}`}
               className="underline-offset-4 hover:text-ink hover:underline"
             >
               {topicMeta(incident.topic).label}
@@ -202,8 +214,35 @@ export default async function IncidentPage({
         spacing audit was asked to remove.
       */}
       <footer className="mt-divider border-t border-dashed border-line pt-divider">
+        {related.length > 0 ? (
+          <div className="flex flex-col gap-3 pb-divider">
+            <h2 className="font-mono text-micro tracking-wider text-ink-3 uppercase">
+              Related incidents
+            </h2>
+            <ul className="list-rows flex flex-col">
+              {related.map((r) => (
+                <li key={r.slug}>
+                  <Link
+                    href={`/q/${r.slug}`}
+                    className="block truncate text-body font-medium text-ink underline-offset-4 hover:underline"
+                  >
+                    {r.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
         <GhostLink href="/archive">Back to the archive</GhostLink>
       </footer>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          // Escape `<` so a `</script>` in content cannot end the block early.
+          __html: JSON.stringify([incidentSchema(incident), breadcrumbSchema(seoPage.breadcrumbs)]).replace(/</g, "\\u003c"),
+        }}
+      />
     </div>
   );
 }
