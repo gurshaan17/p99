@@ -29,7 +29,8 @@ import { renderWelcome } from "@/lib/email/welcome";
 const SUBSCRIBERS_KEY = "p99:subscribers";
 
 /**
- * Five attempts a minute is generous for a human typing one address.
+ * Five attempts an hour is generous for a human typing one address — a
+ * handful of typos or a double-click, not a campaign.
  *
  * Built lazily rather than at module scope: the constructor captures the Redis
  * client, and a module-scope construction would run during `next build` on a
@@ -41,7 +42,11 @@ let limiter: Ratelimit | null = null;
 function getLimiter(): Ratelimit {
   limiter ??= new Ratelimit({
     redis: getRedis(),
-    limiter: Ratelimit.slidingWindow(5, "1 m"),
+    // Five attempts an hour. Sliding rather than a wall-clock fixed window:
+    // a burst of five is allowed through, the sixth attempt an hour later
+    // frees its slot — so it both permits "5 requests in 1 minute" and
+    // limits for the remainder of the hour.
+    limiter: Ratelimit.slidingWindow(5, "1 h"),
     prefix: "p99:ratelimit:subscribe",
     // A distinct analytics key would need its own env var; the limiter's own
     // counter is the signal we act on, so analytics is off rather than invented.
@@ -95,7 +100,7 @@ export async function POST(request: NextRequest) {
     // autofill and any retry logic actually read. Seconds, rounded up, minimum 1.
     const retryAfter = Math.max(1, Math.ceil((reset - Date.now()) / 1000));
     return NextResponse.json(
-      { error: "Too many attempts. Try again in a minute." },
+      { error: "Too many attempts. Try again in an hour." },
       { status: 429, headers: { "Retry-After": String(retryAfter) } },
     );
   }
