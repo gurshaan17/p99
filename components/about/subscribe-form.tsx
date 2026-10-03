@@ -70,7 +70,7 @@ export function SubscribeForm() {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-2">
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
         <label htmlFor="subscribe-input" className="sr-only">
           Email address
         </label>
@@ -89,11 +89,11 @@ export function SubscribeForm() {
             if (state === "error") setState("idle");
           }}
           placeholder="you@example.com"
-          className="h-11 min-w-0 flex-1 rounded-control border border-line bg-page px-3 text-base text-ink outline-none transition-colors duration-(--dur-hover) placeholder:text-ink-3 focus-visible:border-line-strong disabled:opacity-60 sm:h-10 sm:text-body"
+          className="h-12 min-h-12 min-w-0 flex-1 appearance-none rounded-control border border-line bg-page px-3 text-base leading-normal text-ink outline-none transition-colors duration-(--dur-hover) placeholder:text-ink-3 focus-visible:border-line-strong disabled:opacity-60 sm:h-10 sm:min-h-10 sm:text-body"
         />
         <PrimaryButton
           type="submit"
-          className="shrink-0 w-full sm:w-auto disabled:opacity-60"
+          className="h-12 min-h-12 w-full shrink-0 disabled:opacity-60 sm:h-10 sm:min-h-10 sm:w-auto"
           disabled={state === "submitting" || state === "done"}
         >
           {state === "submitting" ? "Adding…" : "Subscribe"}
