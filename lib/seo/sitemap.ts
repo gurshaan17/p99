@@ -32,6 +32,7 @@ const STATIC_PATHS: { path: string; priority: number; changeFrequency: SitemapEn
   { path: "/topics", priority: 0.8, changeFrequency: "weekly" },
   { path: "/about", priority: 0.4, changeFrequency: "monthly" },
   { path: "/streak", priority: 0.3, changeFrequency: "weekly" },
+  { path: "/submit", priority: 0.3, changeFrequency: "monthly" },
 ];
 
 export function staticSitemapEntries(): SitemapEntry[] {

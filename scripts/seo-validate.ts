@@ -74,7 +74,7 @@ for (const [key, slugs] of normalized) {
 const allPaths = [
   ...incidents.map((i) => `/q/${i.slug}`),
   ...TOPICS.map((t) => `/topics/${t.id}`),
-  "/", "/archive", "/topics", "/about", "/streak",
+  "/", "/archive", "/topics", "/about", "/streak", "/submit",
 ];
 for (const path of allPaths) {
   if (canonicalPath(path) !== path) error(`Non-canonical path casing/slash: ${path}`);

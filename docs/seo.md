@@ -114,7 +114,7 @@ record *is* the content.
 
 - `GET /sitemap.xml` — the sitemap index (`app/sitemap.xml/route.ts`).
   Lists only segments that have URLs.
-- `GET /sitemap/static.xml` — `/`, `/archive`, `/topics`, `/about`, `/streak`,
+- `GET /sitemap/static.xml` — `/`, `/archive`, `/topics`, `/about`, `/streak`, `/submit`,
   with `lastmod` = newest incident date.
 - `GET /sitemap/topics.xml` — eligible topic hubs only.
 - `GET /sitemap/incidents-N.xml` — eligible incidents, newest first, chunked at

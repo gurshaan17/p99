@@ -119,6 +119,7 @@ ${topicSections}
 - [About](${ORIGIN}/about): what the site is, and how an incident is structured
 - [Topics](${ORIGIN}/topics): every incident grouped by the one area it is filed under
 - [Archive](${ORIGIN}/archive): every incident, newest first
+- [Submit](${ORIGIN}/submit): how to contribute an incident
 
 ## Optional
 

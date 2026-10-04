@@ -4,6 +4,7 @@ import {
   Flame,
   Info,
   Layers,
+  Send,
   type LucideIcon,
 } from "lucide-react";
 import { topicCounts } from "@/lib/incidents";
@@ -38,6 +39,7 @@ export const nav: NavItemSpec[] = [
   { href: "/archive", label: "Archive", icon: Archive },
   { href: "/topics", label: "Topics", icon: Layers },
   { href: "/streak", label: "Streak", icon: Flame },
+  { href: "/submit", label: "Submit", icon: Send },
   { href: "/about", label: "About", icon: BookOpen },
 ];
 
