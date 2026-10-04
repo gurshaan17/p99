@@ -20,6 +20,7 @@ reasoning needed to find it.
 - [cmdk](https://cmdk.paco.me) (command palette) · [Radix UI](https://www.radix-ui.com) · [lucide-react](https://lucide.dev)
 - [react-markdown](https://github.com/remarkjs/react-markdown) + [remark-gfm](https://github.com/remarkjs/remark-gfm) (diagnosis prose)
 - [Upstash Redis](https://upstash.com) + [@upstash/ratelimit](https://upstash.com/docs/redis/features/ratelimit) (submission rate limiting)
+- [AWS SES](https://aws.amazon.com/ses/) (welcome email + daily digest)
 - [Vercel Analytics](https://vercel.com/docs/analytics)
 - Deployed on [Vercel](https://vercel.com)
 
@@ -59,11 +60,33 @@ hardcode a host.
 Without the Redis vars the subscribe and prediction endpoints still build; they
 simply stop rate limiting rather than 500-ing. See `lib/redis.ts`.
 
+## Newsletter
+
+Subscribing at `/about` writes the address to the `p99:subscribers` Redis set
+(idempotent `SADD`, so re-subscribing changes nothing) and sends a welcome
+email. A Vercel cron (`vercel.json`: `0 4 * * *` — 04:00 UTC, 09:30 IST) sends
+the daily digest via `/api/cron/daily-digest`. Sends are raw MIME from
+`lib/email/send.ts` because Gmail/Yahoo require `List-Unsubscribe` and
+`List-Unsubscribe-Post: List-Unsubscribe=One-Click` headers:
+
+- `/api/unsubscribe` verifies an HMAC token (`lib/unsubscribe.ts`, keyed by
+  `UNSUBSCRIBE_SECRET`) and `SREM`s the address — GET for the browser, POST
+  for one-click.
+- `/api/ses-notifications` consumes SNS: hard bounces and complaints are
+  removed from the list automatically.
+- `scripts/preview-emails.ts` renders both templates to `.preview/` without
+  sending.
+
+Without the AWS vars the site still builds; subscribing just stores the address
+and skips the welcome send.
+
 ## Project layout
 
 ```text
 app/                  routes — /, /archive, /topics, /q/[slug], /streak, /about,
-                      plus /rss.xml, /llms.txt, /api/revalidate, /api/subscribe
+                      /submit, plus /rss.xml, /llms.txt, /api/revalidate,
+                      /api/subscribe, /api/unsubscribe, /api/ses-notifications,
+                      /api/cron/daily-digest
 components/
   shell/              frame, sidebar, topbar, mobile nav, search, command palette
   question/           the incident reader: picks, reveal, rubric, remember-gate
@@ -75,9 +98,10 @@ content/incidents/    ← one file per incident, this is where content lives
   types.ts            the Incident schema + curated TOPICS list
   index.ts            the registry: imports every incident, newest first
 lib/                  incidents (queries), site config, origin, redis, metadata, nav
-lib/seo/               the SEO core — pages, metadata, schema, canonical,
-                       breadcrumbs, related, eligibility, sitemap
-scripts/              seo-validate.ts (npm run seo:validate)
+lib/email/            welcome email, daily digest, frame, raw-MIME send (List-Unsubscribe)
+lib/seo/              the SEO core — pages, metadata, schema, canonical,
+                      breadcrumbs, related, eligibility, sitemap
+scripts/              seo-validate.ts (npm run seo:validate), preview-emails.ts
 docs/                 seo.md (SEO architecture), seo-audit.md (phase-27 audit)
 hooks/                useAttempt (in-memory answer state), useResolvedSlugs
 DESIGN.md             design system — tokens, typography, layout, components
@@ -148,7 +172,9 @@ Three things make that work:
   UTC, which is 02:00 IST — marking the root layout stale so each page re-renders
   against the new clock. Vercel sends `Authorization: Bearer $CRON_SECRET`;
   without that variable set the endpoint only answers requests carrying
-  `VERCEL=1`, which is Vercel's own infrastructure.
+  `VERCEL=1`, which is Vercel's own infrastructure. A second cron,
+  `/api/cron/daily-digest`, fires at `0 4 * * *` (04:00 UTC, 09:30 IST) to send
+  the newsletter.
 
 Changing the publish time means editing `PUBLISH_LOCAL_MINUTE_OF_DAY` and the
 schedule in `vercel.json` together — Vercel reads that file before any of this
