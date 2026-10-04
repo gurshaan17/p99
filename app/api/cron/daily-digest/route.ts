@@ -21,6 +21,16 @@ import { sendDailyDigest } from "@/lib/email/send";
 
 const SUBSCRIBERS_KEY = "p99:subscribers";
 
+/**
+ * Per-day send marker. The cron is an at-least-once caller: a retried or
+ * manually re-triggered run would otherwise mail the same incident twice.
+ * The key says the send for one publish day happened, so a second invocation
+ * that day skips instead of duplicating.
+ */
+function dailyKey(day: string): string {
+  return `p99:digest:sent:${day}`;
+}
+
 function authorized(request: Request): boolean {
   const secret = process.env.CRON_SECRET;
   if (!secret) return process.env.VERCEL === "1";
@@ -55,9 +65,15 @@ export async function GET(request: Request) {
 
   let subscribers: string[];
   try {
+    const sentKey = dailyKey(publishDayKey());
+    if (await getRedis().get(sentKey)) {
+      console.log("daily-digest: already sent today, skipping duplicate run");
+      return Response.json({ sent: 0, skipped: `Already sent for ${publishDayKey()}` });
+    }
+
     subscribers = await getRedis().smembers(SUBSCRIBERS_KEY);
   } catch (error) {
-    console.error("daily-digest: SMEMBERS failed", { error: String(error) });
+    console.error("daily-digest: Redis failed", { error: String(error) });
     return Response.json({ error: "Could not load subscribers." }, { status: 500 });
   }
 
@@ -71,6 +87,17 @@ export async function GET(request: Request) {
     sent: report.succeeded.length,
     failed: report.failed.length,
   });
+
+  // Set the marker only when at least one send succeeded — a total failure
+  // should be retryable, not remembered as done. 48h TTL so the keyspace
+  // does not grow forever.
+  if (report.succeeded.length > 0) {
+    try {
+      await getRedis().set(dailyKey(publishDayKey()), "1", { ex: 48 * 60 * 60 });
+    } catch (error) {
+      console.error("daily-digest: failed to record send marker", { error: String(error) });
+    }
+  }
 
   return Response.json({
     slug: incident.slug,
