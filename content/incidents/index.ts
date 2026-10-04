@@ -11,6 +11,7 @@ import { counterReadModifyWriteRace } from "./016-counter-read-modify-write-race
 import { rateLimiterSharedStateRedis } from "./017-rate-limiter-shared-state-redis";
 import { cacheChurnScatterQueryCascade } from "./018-cache-churn-scatter-query-cascade";
 import { expiredInternalMtlsCert } from "./019-expired-internal-mtls-cert";
+import { configPropagationFailStatic } from "./020-config-propagation-fail-static";
 import type { Incident } from "./types";
 
 export type { Incident };
@@ -39,4 +40,5 @@ export const incidents: Incident[] = [
   rateLimiterSharedStateRedis,
   cacheChurnScatterQueryCascade,
   expiredInternalMtlsCert,
+  configPropagationFailStatic,
 ].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
