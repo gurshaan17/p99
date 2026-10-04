@@ -4,7 +4,7 @@ export const gcPauseP99Spikes = {
   slug: "gc-pause-p99-spikes",
   title: "CPU graph says 45%. p99 latency says otherwise.",
   publishedAt: "2026-09-27",
-  difficulty: "hard",
+  difficulty: "medium",
   topic: "runtime",
   tags: ["jvm", "garbage-collection", "latency"],
   symptom:
