@@ -9,6 +9,7 @@ import { site } from "@/lib/site";
 import { Sidebar } from "@/components/shell/sidebar";
 import { Topbar } from "@/components/shell/topbar";
 import { FooterLinks } from "@/components/shell/footer-links";
+import { VisitorCount } from "@/components/shell/visitor-count";
 import "./globals.css";
 
 /**
@@ -101,7 +102,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col bg-page text-ink-2">
         <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem>
           <Frame>
-            <Sidebar />
+            <Sidebar>
+              <VisitorCount />
+            </Sidebar>
             <div className="flex min-w-0 flex-col">
               <Topbar />
               <main className="flex-1 px-(--pad-x) py-(--pad-y)">{children}</main>

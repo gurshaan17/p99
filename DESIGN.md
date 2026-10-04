@@ -462,7 +462,8 @@ Internal order:
 7. optional `TOPICS` section links
 8. flexible spacer
 9. dashed footer divider
-10. footer controls/links
+10. optional footer metadata — total visitors
+11. footer controls/links
 
 The mark is `size-25` (100px under default Tailwind spacing). It is a custom abstract glyph, not a reproduction of anything.
 
@@ -1409,6 +1410,14 @@ own "one incident a day" premise. It is now a Monday-to-Sunday calendar sized to
 the site's real history and capped at a year, which grows as the site ages. Worth
 revisiting if the site ever publishes retroactively, since a backdated incident
 would appear in a column that already scrolled past.
+
+**The sidebar visitor count is server metadata, not a nav item.** It renders
+just above the footer links as a mono/micro line with a tabular count. The
+number comes from Vercel's aggregate `visits/count` endpoint, cached for the
+same hourly window as the pages; missing credentials or a failed API renders
+no block rather than an invented number. A client fetch would expose the token
+or make the count visibly pop in after hydration, so it is passed into the
+client sidebar as a server child.
 
 **The social card is one definition in `lib/metadata`, and every page spreads it.**
 Adding a per-page `openGraph` object to fix its `og:url` silently deleted the

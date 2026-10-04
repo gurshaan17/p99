@@ -6,6 +6,7 @@ import { site } from "@/lib/site";
 import { Mark } from "./mark";
 import { FooterLinks } from "./footer-links";
 import { NavItem, SectionLabel } from "@/components/ui/nav-item";
+import type { ReactNode } from "react";
 
 /**
  * Desktop sidebar — DESIGN.md sections 2.2, 5.3.
@@ -20,7 +21,7 @@ import { NavItem, SectionLabel } from "@/components/ui/nav-item";
  * Client because active-route highlighting has to track navigation; there is no
  * static route list to precompute here.
  */
-export function Sidebar() {
+export function Sidebar({ children }: { children?: ReactNode }) {
   return (
     <aside
       className="hidden lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:overflow-y-auto lg:border-r lg:border-dashed lg:border-line lg:px-(--pad-x) lg:pt-(--sidebar-pad-top)"
@@ -88,6 +89,7 @@ export function Sidebar() {
       <div className="flex-1" />
 
       <div className="mt-5 border-t border-dashed border-line py-4 text-small text-ink-3">
+        {children}
         <FooterLinks />
       </div>
     </aside>

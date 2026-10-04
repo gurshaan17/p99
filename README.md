@@ -52,6 +52,9 @@ npm run lint       # eslint
 | `UNSUBSCRIBE_SECRET` | for sending | HMAC key signing unsubscribe links |
 | `VERCEL_PROJECT_PRODUCTION_URL` | auto on Vercel | Canonical origin (canonical URLs, RSS, OG tags) |
 | `VERCEL_URL` | auto on Vercel | Fallback origin, overridden by the above |
+| `VERCEL_ACCESS_TOKEN` | for the sidebar visitor count | Bearer token for the Web Analytics API |
+| `VERCEL_PROJECT_ID` | for the sidebar visitor count | Vercel project receiving the analytics events |
+| `VERCEL_TEAM_ID` / `VERCEL_TEAM_SLUG` | team projects only | Team context for the Web Analytics API |
 
 `lib/origin.ts` is the single place the site's host is resolved — Vercel vars
 win, with `https://p99.online` as the local-dev fallback. Nothing else should
