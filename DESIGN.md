@@ -1411,9 +1411,9 @@ the site's real history and capped at a year, which grows as the site ages. Wort
 revisiting if the site ever publishes retroactively, since a backdated incident
 would appear in a column that already scrolled past.
 
-**The sidebar visitor count is server metadata, not a nav item.** It renders
-just above the footer links as a mono/micro line with a tabular count. The
-number comes from Vercel's aggregate `visits/count` endpoint, cached for the
+**The visitor count is server metadata, not a nav item.** It renders just
+above the footer links in both the desktop sidebar footer and the mobile
+page footer as a mono/micro line with a tabular count. The number comes from Vercel's aggregate `visits/count` endpoint, cached for the
 same hourly window as the pages; missing credentials or a failed API renders
 no block rather than an invented number. A client fetch would expose the token
 or make the count visibly pop in after hydration, so it is passed into the

@@ -16,14 +16,18 @@ import "./globals.css";
  * `template` is why no page repeats the brand suffix. The four page titles
  * hardcoded "— p99" between them, which is a second home for a string that also
  * lives in the wordmark and the tab title; a page setting `title: "Topics"` now
- * resolves to "Topics — p99" from here.
+ * resolves to "Topics — p99" from here. The default includes the tagline so the
+ * homepage title is descriptive instead of just the brand.
  */
 export const metadata: Metadata = {
   // Everything below is a path until this resolves it. Without a base, `og:image`
   // is emitted as a relative URL, which some crawlers resolve against their own
   // host and some ignore entirely — the card is simply missing, with no error.
   metadataBase: new URL(ORIGIN),
-  title: { default: site.name, template: `%s — ${site.name}` },
+  title: {
+    default: `${site.name} — ${site.tagline}`,
+    template: `%s — ${site.name}`,
+  },
   description: site.description,
   applicationName: site.name,
   // Autodiscovery, so a reader can find the feed without the topbar link. The
@@ -126,6 +130,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 left-hand column and shares its edge.
               */}
               <footer className="mt-(--pad-y) border-t border-dashed border-line px-(--pad-x) py-(--pad-y) text-small text-ink-3 lg:hidden">
+                <VisitorCount align="center" />
                 <FooterLinks align="center" />
               </footer>
             </div>
