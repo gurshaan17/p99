@@ -14,6 +14,7 @@ import { expiredInternalMtlsCert } from "./019-expired-internal-mtls-cert";
 import { configPropagationFailStatic } from "./020-config-propagation-fail-static";
 import { backupJobSilentFailure } from "./021-backup-job-silent-failure";
 import { lockQueueMigrationStall } from "./022-lock-queue-migration-stall";
+import { clockStepBackwardDuplicateIds } from "./023-clock-step-backward-duplicate-ids";
 import type { Incident } from "./types";
 
 export type { Incident };
@@ -45,4 +46,5 @@ export const incidents: Incident[] = [
   configPropagationFailStatic,
   backupJobSilentFailure,
   lockQueueMigrationStall,
+  clockStepBackwardDuplicateIds,
 ].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
