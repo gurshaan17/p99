@@ -16,6 +16,7 @@ import { backupJobSilentFailure } from "./021-backup-job-silent-failure";
 import { lockQueueMigrationStall } from "./022-lock-queue-migration-stall";
 import { clockStepBackwardDuplicateIds } from "./023-clock-step-backward-duplicate-ids";
 import { oneStalledPartitionSilentLag } from "./024-one-stalled-partition-silent-lag";
+import { dstSpringForwardSkippedJobs } from "./025-dst-spring-forward-skipped-jobs";
 import type { Incident } from "./types";
 
 export type { Incident };
@@ -49,4 +50,5 @@ export const incidents: Incident[] = [
   lockQueueMigrationStall,
   clockStepBackwardDuplicateIds,
   oneStalledPartitionSilentLag,
+  dstSpringForwardSkippedJobs,
 ].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
