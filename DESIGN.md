@@ -755,6 +755,24 @@ Composition:
 
 The home page should not become a generic SaaS dashboard.
 
+#### Home reading hierarchy
+
+The home opens with a compact accent-tinted orientation notice: a mono label,
+a short explanation of the exercise, and a three-step text sequence. It uses
+existing promo spacing, body/small typography, and no new imagery or effects.
+The featured incident remains the sole page title. A mono “Today's incident”
+label and date sit above it; topic, difficulty, and tags wrap below it rather
+than forming one long metadata string. An ink-filled 40px link, matching the
+primary button, takes the reader to the existing prediction flow.
+
+The full symptom, constraints, evidence, and inline reveal remain available on
+home. The incident question appears before the reveal so a reader has a task to
+reason through. Recent entries and the inline newsletter are separate regions
+with full-width dashed boundaries (negative page-padding margins, restored
+padding inside). The newsletter reuses the existing SubscribeForm. Keep the
+sidebar glyph, fonts, palette, shell, and mobile navigation unchanged.
+
+
 ### 8.2 Incident page
 
 Single-column reading area, approximately 720px maximum width. Sections, each separated by the same dashed structural language:
