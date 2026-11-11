@@ -1,4 +1,5 @@
-import { Geist, Geist_Mono, Geist_Pixel, Space_Grotesk } from "next/font/google";
+import localFont from "next/font/local";
+import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
 
 /**
  * Font roles — DESIGN.md section 4.1.
@@ -20,12 +21,12 @@ export const display = Space_Grotesk({
   display: "swap",
 });
 
-// Geist Pixel's ELSH axis has no published override metrics, so no automatic
-// fallback font is generated. The role renders a single short wordmark, where
-// the CLS benefit would be negligible. Turbopack still prints a cosmetic
-// "Failed to find font override values" warning; it is expected and harmless.
-export const pixel = Geist_Pixel({
-  subsets: ["latin"],
+// Bundle the same Latin font used by the wordmark locally. This bypasses the
+// Google loader's missing fallback metrics while preserving the pixel face.
+export const pixel = localFont({
+  src: "./font-assets/geist-pixel-latin.woff2",
+  weight: "400",
+  style: "normal",
   variable: "--font-pixel-face",
   display: "swap",
   adjustFontFallback: false,

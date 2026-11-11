@@ -370,7 +370,12 @@ Use `next/font/local` for the local font assets. Do not make components request 
 
 **Resolution in this repo** (`app/fonts.ts`): body sans `Geist`, display `Space_Grotesk`, pixel `Geist Pixel`, mono `Geist_Mono`. The pixel face pairs with the Geist superfamily so the wordmark reads as one system. Each loader exposes only a CSS variable, so components reference the roles by name and never by family.
 
-> The pixel role renders with `adjustFontFallback: false`. `Geist Pixel`'s ELSH axis has no published override metrics, so Turbopack cannot synthesise a fallback and prints a cosmetic `Failed to find font override values` warning on every build. It is expected; the role is a single short wordmark where the CLS benefit is negligible.
+> The pixel role uses `next/font/local` with the existing Latin Geist Pixel
+> asset in `app/font-assets/` and `adjustFontFallback: false`. The Google loader
+> emitted a missing fallback-metrics warning under Turbopack even with adjustment
+> disabled. Loading the same font locally avoids that lookup and preserves the
+> wordmark. Its OFL license is stored beside the font. Other font roles retain
+> their existing loaders.
 
 ### 4.2 Type scale
 
@@ -754,6 +759,24 @@ Composition:
 6. `View archive` text/ghost action
 
 The home page should not become a generic SaaS dashboard.
+
+#### Home reading hierarchy
+
+The home opens with a compact accent-tinted orientation notice: a mono label,
+a short explanation of the exercise, and a three-step text sequence. It uses
+existing promo spacing, body/small typography, and no new imagery or effects.
+The featured incident remains the sole page title. A mono “Today's incident”
+label and date sit above it; topic, difficulty, and tags wrap below it rather
+than forming one long metadata string. An ink-filled 40px link, matching the
+primary button, takes the reader to the existing prediction flow.
+
+The full symptom, constraints, evidence, and inline reveal remain available on
+home. The incident question appears before the reveal so a reader has a task to
+reason through. Recent entries and the inline newsletter are separate regions
+with full-width dashed boundaries (negative page-padding margins, restored
+padding inside). The newsletter reuses the existing SubscribeForm. Keep the
+sidebar glyph, fonts, palette, shell, and mobile navigation unchanged.
+
 
 ### 8.2 Incident page
 
