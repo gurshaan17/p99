@@ -370,7 +370,12 @@ Use `next/font/local` for the local font assets. Do not make components request 
 
 **Resolution in this repo** (`app/fonts.ts`): body sans `Geist`, display `Space_Grotesk`, pixel `Geist Pixel`, mono `Geist_Mono`. The pixel face pairs with the Geist superfamily so the wordmark reads as one system. Each loader exposes only a CSS variable, so components reference the roles by name and never by family.
 
-> The pixel role renders with `adjustFontFallback: false`. `Geist Pixel`'s ELSH axis has no published override metrics, so Turbopack cannot synthesise a fallback and prints a cosmetic `Failed to find font override values` warning on every build. It is expected; the role is a single short wordmark where the CLS benefit is negligible.
+> The pixel role uses `next/font/local` with the existing Latin Geist Pixel
+> asset in `app/font-assets/` and `adjustFontFallback: false`. The Google loader
+> emitted a missing fallback-metrics warning under Turbopack even with adjustment
+> disabled. Loading the same font locally avoids that lookup and preserves the
+> wordmark. Its OFL license is stored beside the font. Other font roles retain
+> their existing loaders.
 
 ### 4.2 Type scale
 
