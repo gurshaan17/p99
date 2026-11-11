@@ -18,6 +18,7 @@ import { clockStepBackwardDuplicateIds } from "./023-clock-step-backward-duplica
 import { oneStalledPartitionSilentLag } from "./024-one-stalled-partition-silent-lag";
 import { dstSpringForwardSkippedJobs } from "./025-dst-spring-forward-skipped-jobs";
 import { retryAmplificationBrownoutToOutage } from "./026-retry-amplification-brownout-to-outage";
+import { replicaLagReadAfterWrite } from "./027-replica-lag-read-after-write";
 import type { Incident } from "./types";
 
 export type { Incident };
@@ -53,4 +54,5 @@ export const incidents: Incident[] = [
   oneStalledPartitionSilentLag,
   dstSpringForwardSkippedJobs,
   retryAmplificationBrownoutToOutage,
+  replicaLagReadAfterWrite,
 ].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
